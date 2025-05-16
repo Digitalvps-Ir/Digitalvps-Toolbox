@@ -2,6 +2,14 @@
 
 #https://github.com/ParsaKSH
 
+echo "============================================="
+echo "        DigitalVPS.ir MTU Configuration Tool     "
+echo "        https://github.com/Digitalvps-Ir     "
+echo "---------------------------------------------"
+echo " Developed by: https://github.com/ParsaKSH  "
+echo "============================================="
+
+
 
 if [ "$(id -u)" -ne 0 ]; then
   echo "❌ Please run this script as root."
