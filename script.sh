@@ -2,6 +2,7 @@
 
 #https://github.com/ParsaKSH
 
+
 if [ "$(id -u)" -ne 0 ]; then
   echo "❌ Please run this script as root."
   exit 1
@@ -54,11 +55,9 @@ if [ -f /etc/network/interfaces ]; then
   echo "🔁 Checking /etc/network/interfaces for $main_iface"
   cp /etc/network/interfaces /etc/network/interfaces.bak
   if grep -q "iface $main_iface" /etc/network/interfaces; then
-    sed -i "/iface $main_iface inet/s/$/ mtu $mtu_value/" /etc/network/interfaces
-    if ! grep -q "mtu $mtu_value" /etc/network/interfaces; then
-      echo "      mtu $mtu_value" >> /etc/network/interfaces
-    fi
-    echo "✅ MTU change saved to /etc/network/interfaces"
+    sed -i "/iface $main_iface/s/ mtu [0-9]*//g" /etc/network/interfaces
+    sed -i "/iface $main_iface/s/$/ mtu $mtu_value/" /etc/network/interfaces
+    echo "✅ Clean MTU value set in /etc/network/interfaces"
   else
     echo "⚠️ Interface $main_iface not found in interfaces file. Please edit manually if needed."
   fi
