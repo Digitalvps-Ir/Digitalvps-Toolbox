@@ -1,5 +1,12 @@
 #!/bin/bash
 
+#https://github.com/ParsaKSH
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "❌ Please run this script as root."
+  exit 1
+fi
+
 main_iface=$(ip route | grep default | awk '{print $5}')
 
 if [ -z "$main_iface" ]; then
@@ -17,7 +24,7 @@ if ! [[ "$mtu_value" =~ ^[0-9]+$ ]]; then
 fi
 
 echo "🔧 Setting MTU for $main_iface to $mtu_value..."
-sudo ip link set dev "$main_iface" mtu "$mtu_value"
+ip link set dev "$main_iface" mtu "$mtu_value"
 
 if [ $? -eq 0 ]; then
   echo "✅ MTU successfully set temporarily."
@@ -26,16 +33,35 @@ else
   exit 1
 fi
 
-if grep -q "$main_iface" /etc/network/interfaces; then
-  echo "🔁 Making MTU change persistent in /etc/network/interfaces"
-
-  sudo sed -i "/iface $main_iface inet/s/$/ mtu $mtu_value/" /etc/network/interfaces
-
-  if ! grep -q "mtu $mtu_value" /etc/network/interfaces; then
-    echo "      mtu $mtu_value" | sudo tee -a /etc/network/interfaces > /dev/null
+if [ -d /etc/netplan ]; then
+  netplan_file=$(grep -rl "$main_iface" /etc/netplan)
+  if [ -n "$netplan_file" ]; then
+    echo "🔁 Making MTU persistent in $netplan_file"
+    cp "$netplan_file" "${netplan_file}.bak"
+    sed -i "/$main_iface:/,/^[^[:space:]]/s/mtu:.*//g" "$netplan_file"
+    sed -i "/$main_iface:/a \ \ \ \ mtu: $mtu_value" "$netplan_file"
+    netplan apply
+    if [ $? -eq 0 ]; then
+      echo "✅ MTU change applied and made persistent via netplan."
+      exit 0
+    else
+      echo "❌ Failed to apply netplan."
+    fi
   fi
+fi
 
-  echo "✅ MTU change appended to /etc/network/interfaces"
+if [ -f /etc/network/interfaces ]; then
+  echo "🔁 Checking /etc/network/interfaces for $main_iface"
+  cp /etc/network/interfaces /etc/network/interfaces.bak
+  if grep -q "iface $main_iface" /etc/network/interfaces; then
+    sed -i "/iface $main_iface inet/s/$/ mtu $mtu_value/" /etc/network/interfaces
+    if ! grep -q "mtu $mtu_value" /etc/network/interfaces; then
+      echo "      mtu $mtu_value" >> /etc/network/interfaces
+    fi
+    echo "✅ MTU change saved to /etc/network/interfaces"
+  else
+    echo "⚠️ Interface $main_iface not found in interfaces file. Please edit manually if needed."
+  fi
 else
-  echo "⚠️ Interface $main_iface not found in /etc/network/interfaces. Please edit it manually if needed."
+  echo "❌ No supported network config found. Please configure MTU manually."
 fi
