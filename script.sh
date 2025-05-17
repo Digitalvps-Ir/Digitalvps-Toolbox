@@ -130,7 +130,9 @@ elif [ "$choice" = "1" ]; then
   fi
 
 elif [ "$choice" = "2" ]; then
-  read -p "$(echo -e ${WHITE}Enter desired MTU value (e.g., 1420):${RESET} )" mtu_value
+  prompt="${WHITE}Enter desired MTU value (e.g., 1420):${RESET} "
+read -p "$(echo -e "$prompt")" mtu_value
+
   if ! [[ "$mtu_value" =~ ^[0-9]+$ ]]; then
     echo -e "${RED}❌ Invalid MTU value.${RESET}"
     exit 1
