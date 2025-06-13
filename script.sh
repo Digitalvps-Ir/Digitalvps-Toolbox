@@ -92,13 +92,16 @@ fi
 draw_menu "MTU Mode Menu" \
   "1) Auto-detect best MTU" \
   "2) Enter MTU manually" \
-  "3) Exit"
+  "3) Resolve GitHub Problem" \
+  "4) Exit"
+
 
 read choice
 
-if [ "$choice" = "3" ]; then
+if [ "$choice" = "4" ]; then
   echo -e "${YELLOW}👋 Exiting. Goodbye.${RESET}"
   exit 0
+
 elif [ "$choice" = "1" ]; then
   echo -e "${ORANGE}🔍 Detecting best MTU using ping...${RESET}"
   host="8.8.8.8"
@@ -131,17 +134,29 @@ elif [ "$choice" = "1" ]; then
 
 elif [ "$choice" = "2" ]; then
   prompt="${WHITE}Enter desired MTU value (e.g., 1420):${RESET} "
-read -p "$(echo -e "$prompt")" mtu_value
+  read -p "$(echo -e "$prompt")" mtu_value
 
   if ! [[ "$mtu_value" =~ ^[0-9]+$ ]]; then
     echo -e "${RED}❌ Invalid MTU value.${RESET}"
     exit 1
   fi
+
+elif [ "$choice" = "3" ]; then
+  line1="185.199.111.133 raw.githubusercontent.com"
+  line2="140.82.121.3 github.com"
+  file="/etc/hosts"
+
+  grep -qF "$line1" "$file" || echo "$line1" | tee -a "$file" > /dev/null
+  grep -qF "$line2" "$file" || echo "$line2" | tee -a "$file" > /dev/null
+
+  echo -e "${GREEN}✅ GitHub access issue resolved!${RESET}"
+  echo -e "${CYAN}🌐 /etc/hosts has been updated with GitHub IPv4 entries.${RESET}"
+  exit 0
+
 else
   echo -e "${RED}❌ Invalid choice.${RESET}"
   exit 1
 fi
-
 echo -e "${CYAN}🔧 Setting MTU for ${main_iface} to ${mtu_value}...${RESET}"
 ip link set dev "$main_iface" mtu "$mtu_value"
 if [ $? -eq 0 ]; then
