@@ -151,7 +151,9 @@ elif [ "$choice" = "3" ]; then
 
   grep -qF "$line1" "$file" || echo "$line1" | tee -a "$file" > /dev/null
   grep -qF "$line2" "$file" || echo "$line2" | tee -a "$file" > /dev/null
-
+  grep -qF "$line3" "$file" || echo "$line3" | tee -a "$file" > /dev/null
+  grep -qF "$line4" "$file" || echo "$line4" | tee -a "$file" > /dev/null
+  grep -qF "$line5" "$file" || echo "$line5" | tee -a "$file" > /dev/null
   echo -e "${GREEN}✅ GitHub access issue resolved!${RESET}"
   echo -e "${CYAN}🌐 /etc/hosts has been updated with GitHub IPv4 entries.${RESET}"
   exit 0
