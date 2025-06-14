@@ -144,6 +144,9 @@ elif [ "$choice" = "2" ]; then
 elif [ "$choice" = "3" ]; then
   line1="185.199.111.133 raw.githubusercontent.com"
   line2="140.82.121.3 github.com"
+  line3="140.82.121.5 api.github.com"
+  line4="185.199.111.153 api.github.io"
+  line5="140.82.121.3 www.github.com"
   file="/etc/hosts"
 
   grep -qF "$line1" "$file" || echo "$line1" | tee -a "$file" > /dev/null
