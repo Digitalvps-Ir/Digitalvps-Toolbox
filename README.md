@@ -47,7 +47,7 @@
 ## 🧪 دستور اجرای اسکریپت(کاربر روت):
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/Digitalvps-Ir/main-interface-mtu-setter/main/script.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/Digitalvps-Ir/Digitalvps-Toolbox/main/script.sh)
 ```
 ---
 ## <img src="https://client.digitalvps.ir/templates/lagom2/assets/img/logo/logo_big.1066038415.png" width="34" /> خرید سرور ایران و خارج با کیفیت بالا و پورت 10Gb/s
