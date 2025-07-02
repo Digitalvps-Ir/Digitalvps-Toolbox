@@ -92,15 +92,14 @@ fi
 draw_menu "ToolBox Menu" \
   "1) Auto-detect best MTU" \
   "2) Enter MTU manually" \
-  "3) Resolve GitHub Problem" \
-  "4) Auto-Detect best APT Mirror" \
-  "5) Auto-Detect best DNS" \
-  "6) Exit"
+  "3) Auto-Detect best APT Mirror" \
+  "4) Auto-Detect best DNS" \
+  "5) Exit"
 
 
 read choice
 
-if [ "$choice" = "6" ]; then
+if [ "$choice" = "5" ]; then
   echo -e "${YELLOW}👋 Exiting. Goodbye.${RESET}"
   exit 0
 
@@ -143,21 +142,8 @@ elif [ "$choice" = "2" ]; then
     exit 1
   fi
 
+
 elif [ "$choice" = "3" ]; then
-  line1="185.199.111.133 raw.githubusercontent.com"
-  line2="140.82.121.3 github.com"
-  line3="140.82.121.5 api.github.com"
-  line4="185.199.111.153 api.github.io"
-  line5="140.82.121.3 www.github.com"
-  file="/etc/hosts"
-
-  grep -qF "$line1" "$file" || echo "$line1" | tee -a "$file" > /dev/null
-  grep -qF "$line2" "$file" || echo "$line2" | tee -a "$file" > /dev/null
-
-  echo -e "${GREEN}✅ GitHub access issue resolved!${RESET}"
-  echo -e "${CYAN}🌐 /etc/hosts has been updated with GitHub IPv4 entries.${RESET}"
-  exit 0
-elif [ "$choice" = "4" ]; then
   echo -e "${CYAN}🌍 Detecting best APT mirror...${RESET}"
 
   mirrors=(
@@ -252,7 +238,7 @@ done
   echo -e "${RED}❌ Failed to update package index.${RESET}"
 
   exit 1
-elif [ "$choice" = "5" ]; then
+elif [ "$choice" = "4" ]; then
   echo -e "${CYAN}🛠 DNS Configuration Menu${RESET}"
   echo -e "${WHITE}1) Auto Detect Working DNS${RESET}"
   echo -e "${WHITE}2) Manual Entry${RESET}"
