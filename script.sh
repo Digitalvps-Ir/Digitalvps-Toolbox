@@ -89,7 +89,7 @@ if [ -z "$main_iface" ]; then
   exit 1
 fi
 
-draw_menu "MTU Mode Menu" \
+draw_menu "ToolBox Menu" \
   "1) Auto-detect best MTU" \
   "2) Enter MTU manually" \
   "3) Resolve GitHub Problem" \
