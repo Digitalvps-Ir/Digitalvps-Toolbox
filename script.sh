@@ -93,12 +93,13 @@ draw_menu "MTU Mode Menu" \
   "1) Auto-detect best MTU" \
   "2) Enter MTU manually" \
   "3) Resolve GitHub Problem" \
-  "4) Exit"
+  "4) Detect best APT Mirror" \
+  "5) Exit"
 
 
 read choice
 
-if [ "$choice" = "4" ]; then
+if [ "$choice" = "5" ]; then
   echo -e "${YELLOW}👋 Exiting. Goodbye.${RESET}"
   exit 0
 
@@ -155,7 +156,101 @@ elif [ "$choice" = "3" ]; then
   echo -e "${GREEN}✅ GitHub access issue resolved!${RESET}"
   echo -e "${CYAN}🌐 /etc/hosts has been updated with GitHub IPv4 entries.${RESET}"
   exit 0
+elif [ "$choice" = "4" ]; then
+  echo -e "${CYAN}🌍 Detecting best APT mirror...${RESET}"
 
+  mirrors=(
+    "https://ubuntu.pishgaman.net/ubuntu"
+    "http://mirror.aminidc.com/ubuntu"
+    "https://ubuntu.pars.host"
+    "https://ir.ubuntu.sindad.cloud/ubuntu"
+    "https://ubuntu.shatel.ir/ubuntu"
+    "https://ubuntu.mobinhost.com/ubuntu"
+    "https://mirror.iranserver.com/ubuntu"
+    "https://mirror.arvancloud.ir/ubuntu"
+    "http://ir.archive.ubuntu.com/ubuntu"
+    "https://ubuntu.parsvds.com/ubuntu/"
+    "https://iranrepo.ir/ubuntu"
+    "https://repo.iut.ac.ir/ubuntu/"
+    "https://ubuntu-mirror.kimiahost.com"
+  )
+
+  declare -a mirror_results=()
+  best_speed=0
+  best_index=0
+
+  echo -e "${YELLOW}⏳ Testing download speed for each mirror...${RESET}"
+
+  for i in "${!mirrors[@]}"; do
+    url="${mirrors[$i]}"
+    speed=$(wget --timeout=5 --tries=1 -O /dev/null "$url" 2>&1 | grep -o '[0-9.]* [KM]B/s' | tail -1)
+
+    if [[ $speed == *K* ]]; then
+      kb=$(echo "$speed" | sed 's/ KB\/s//' | awk '{printf "%.0f", $1}')
+    elif [[ $speed == *M* ]]; then
+      kb=$(echo "$speed" | sed 's/ MB\/s//' | awk '{printf "%.0f", $1 * 1024}')
+    else
+      kb=0
+      speed="Failed"
+    fi
+
+    mirror_results+=("$i|$url|$kb|$speed")
+
+    if [ "$kb" -gt "$best_speed" ]; then
+      best_speed=$kb
+      best_index=$i
+    fi
+  done
+echo -e "\n${CYAN}📊 Mirror Speed Results:${RESET}"
+printf "${GREEN}%-4s %-45s %-10s${RESET}\n" "No." "Mirror" "Speed"
+echo -e "${WHITE}---------------------------------------------------------------${RESET}"
+
+for result in "${mirror_results[@]}"; do
+  IFS='|' read -r idx mirror kb speed <<< "$result"
+  mirror_display="$(echo "$mirror" | sed 's|https\?://||')"
+  
+  if [ "$idx" -eq "$best_index" ]; then
+    mirror_color="${CYAN}"
+  elif [ "$speed" == "Failed" ]; then
+    mirror_color="${RED}"
+  else
+    mirror_color="${WHITE}"
+  fi
+
+  printf "${mirror_color}%-4s %-45s %-10s${RESET}\n" "$((idx + 1))" "$mirror_display" "$speed"
+done
+
+  best_mirror="${mirrors[$best_index]}"
+  echo -e "\n${GREEN}✅ Suggested (fastest) mirror: ${WHITE}$best_mirror${RESET}"
+
+  read -p "$(echo -e "${ORANGE}❓ Enter the number of the mirror you want to apply [${YELLOW}$((best_index + 1))${ORANGE}]: ${RESET}")" selection
+  selection="${selection:-$((best_index + 1))}"
+
+  if ! [[ "$selection" =~ ^[0-9]+$ ]] || [ "$selection" -lt 1 ] || [ "$selection" -gt ${#mirrors[@]} ]; then
+    echo -e "${RED}❌ Invalid selection.${RESET}"
+    exit 1
+  fi
+
+  selected_mirror="${mirrors[$((selection - 1))]}"
+  echo -e "${CYAN}🔧 Applying selected mirror: ${WHITE}$selected_mirror${RESET}"
+
+  ubuntu_ver=$(lsb_release -sr | cut -d'.' -f1)
+  if [[ "$ubuntu_ver" -ge 24 ]]; then
+    if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
+      sudo sed -i "s|URIs: https\?://[^ ]*|URIs: $selected_mirror|g" /etc/apt/sources.list.d/ubuntu.sources
+    fi
+  else
+    if [ -f /etc/apt/sources.list ]; then
+      sudo sed -i "s|https\?://[^ ]*|$selected_mirror|g" /etc/apt/sources.list
+    fi
+  fi
+
+  echo -e "${ORANGE}🔄 Updating APT package list...${RESET}"
+  sudo apt-get update >/dev/null 2>&1 && \
+  echo -e "${GREEN}✅ Mirror updated and package index refreshed.${RESET}" || \
+  echo -e "${RED}❌ Failed to update package index.${RESET}"
+
+  exit 1
 else
   echo -e "${RED}❌ Invalid choice.${RESET}"
   exit 1
