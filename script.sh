@@ -93,13 +93,14 @@ draw_menu "MTU Mode Menu" \
   "1) Auto-detect best MTU" \
   "2) Enter MTU manually" \
   "3) Resolve GitHub Problem" \
-  "4) Detect best APT Mirror" \
-  "5) Exit"
+  "4) Auto-Detect best APT Mirror" \
+  "5) Auto-Detect best DNS" \
+  "6) Exit"
 
 
 read choice
 
-if [ "$choice" = "5" ]; then
+if [ "$choice" = "6" ]; then
   echo -e "${YELLOW}👋 Exiting. Goodbye.${RESET}"
   exit 0
 
@@ -251,6 +252,76 @@ done
   echo -e "${RED}❌ Failed to update package index.${RESET}"
 
   exit 1
+elif [ "$choice" = "5" ]; then
+  echo -e "${CYAN}🛠 DNS Configuration Menu${RESET}"
+  echo -e "${WHITE}1) Auto Detect Working DNS${RESET}"
+  echo -e "${WHITE}2) Manual Entry${RESET}"
+  echo -ne "${YELLOW}Choose an option [1/2]: ${RESET}"
+  read -r dns_choice
+
+  if [ "$dns_choice" = "1" ]; then
+    echo -e "${CYAN}🔍 Testing public DNS servers...${RESET}"
+
+    declare -A dns_names=(
+      [0]="Electro"
+      [1]="Shekan"
+      [2]="Dnspro"
+    )
+    dns_sets=(
+      "78.157.42.100 78.157.42.101"
+      "178.22.122.100 185.51.200.2"
+      "87.107.110.109 87.107.110.110"
+    )
+
+    working=()
+    results=()
+    for i in "${!dns_sets[@]}"; do
+      IFS=' ' read -r dns1 dns2 <<< "${dns_sets[$i]}"
+      timeout 2s ping -c1 -W1 "$dns1" >/dev/null 2>&1 && ok1=1 || ok1=0
+      timeout 2s ping -c1 -W1 "$dns2" >/dev/null 2>&1 && ok2=1 || ok2=0
+
+      if [ "$ok1" -eq 1 ] || [ "$ok2" -eq 1 ]; then
+        status="${GREEN}OK${RESET}"
+        working+=("$i")
+      else
+        status="${RED}Failed${RESET}"
+      fi
+      results+=("$i|${dns_sets[$i]}|$status")
+    done
+
+    echo -e "\n${CYAN}📊 DNS Test Results:${RESET}"
+    printf "${GREEN}%-4s %-25s %-10s${RESET}\n" "No." "DNS Servers" "Status"
+    echo -e "${WHITE}----------------------------------------------------${RESET}"
+    for r in "${results[@]}"; do
+      IFS='|' read -r idx dns_ips status <<< "$r"
+      printf "%-4s %-25s " "$((idx+1))" "$dns_ips"
+      echo -e "$status"
+    done
+
+    best="${working[0]}"
+    echo -e "\n${GREEN}Suggested DNS:${RESET} ${dns_names[$best]} - ${dns_sets[$best]}"
+    read -p "$(echo -e "${ORANGE}❓ Enter the number of the DNS to apply [${YELLOW}$((best+1))${ORANGE}]: ${RESET}")" selected
+    selected="${selected:-$((best+1))}"
+    if ! [[ "$selected" =~ ^[0-9]+$ ]] || [ "$selected" -lt 1 ] || [ "$selected" -gt ${#dns_sets[@]} ]; then
+      echo -e "${RED}❌ Invalid selection.${RESET}"
+      exit 1
+    fi
+    selected_dns="${dns_sets[$((selected-1))]}"
+    echo -e "${CYAN}🔧 Setting DNS to: ${WHITE}$selected_dns${RESET}"
+    echo -e "nameserver $(echo $selected_dns | awk '{print $1}')\nnameserver $(echo $selected_dns | awk '{print $2}')" > /etc/resolv.conf
+    echo -e "${GREEN}✅ DNS updated (temporarily in /etc/resolv.conf).${RESET}"
+
+  elif [ "$dns_choice" = "2" ]; then
+    echo -ne "${WHITE}Enter first DNS IP: ${RESET}"
+    read -r dns1
+    echo -ne "${WHITE}Enter second DNS IP: ${RESET}"
+    read -r dns2
+    echo -e "nameserver $dns1\nnameserver $dns2" > /etc/resolv.conf
+    echo -e "${GREEN}✅ DNS updated with manual input.${RESET}"
+  else
+    echo -e "${RED}❌ Invalid option.${RESET}"
+  fi
+  exit 1  
 else
   echo -e "${RED}❌ Invalid choice.${RESET}"
   exit 1
