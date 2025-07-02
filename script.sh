@@ -144,6 +144,7 @@ elif [ "$choice" = "2" ]; then
 
 
 elif [ "$choice" = "3" ]; then
+
   echo -e "${CYAN}🌍 Detecting best APT mirror...${RESET}"
 
   mirrors=(
