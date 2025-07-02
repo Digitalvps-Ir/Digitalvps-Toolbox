@@ -308,7 +308,22 @@ elif [ "$choice" = "5" ]; then
     fi
     selected_dns="${dns_sets[$((selected-1))]}"
     echo -e "${CYAN}🔧 Setting DNS to: ${WHITE}$selected_dns${RESET}"
-    echo -e "nameserver $(echo $selected_dns | awk '{print $1}')\nnameserver $(echo $selected_dns | awk '{print $2}')" > /etc/resolv.conf
+   dns1=$(echo "$selected_dns" | awk '{print $1}')
+dns2=$(echo "$selected_dns" | awk '{print $2}')
+
+if systemctl is-active --quiet systemd-resolved; then
+  iface=$(ip route | grep default | awk '{print $5}' | head -n1)
+  echo -e "${CYAN}🔧 systemd-resolved is active. Applying DNS via resolvectl for interface: ${WHITE}$iface${RESET}"
+  resolvectl dns "$iface" "$dns1" "$dns2"
+  resolvectl domain "$iface" "~."
+  echo -e "${GREEN}✅ DNS set using resolvectl.${RESET}"
+else
+  echo -e "${YELLOW}⚠️ systemd-resolved is not active. Writing to /etc/resolv.conf directly.${RESET}"
+  rm -f /etc/resolv.conf
+  echo -e "nameserver $dns1\nnameserver $dns2" > /etc/resolv.conf
+  echo -e "${GREEN}✅ DNS written to /etc/resolv.conf.${RESET}"
+fi
+
     echo -e "${GREEN}✅ DNS updated (temporarily in /etc/resolv.conf).${RESET}"
 
   elif [ "$dns_choice" = "2" ]; then
@@ -316,7 +331,20 @@ elif [ "$choice" = "5" ]; then
     read -r dns1
     echo -ne "${WHITE}Enter second DNS IP: ${RESET}"
     read -r dns2
-    echo -e "nameserver $dns1\nnameserver $dns2" > /etc/resolv.conf
+
+if systemctl is-active --quiet systemd-resolved; then
+  iface=$(ip route | grep default | awk '{print $5}' | head -n1)
+  echo -e "${CYAN}🔧 systemd-resolved is active. Applying DNS via resolvectl for interface: ${WHITE}$iface${RESET}"
+  resolvectl dns "$iface" "$dns1" "$dns2"
+  resolvectl domain "$iface" "~."
+  echo -e "${GREEN}✅ DNS set using resolvectl.${RESET}"
+else
+  echo -e "${YELLOW}⚠️ systemd-resolved is not active. Writing to /etc/resolv.conf directly.${RESET}"
+  rm -f /etc/resolv.conf
+  echo -e "nameserver $dns1\nnameserver $dns2" > /etc/resolv.conf
+  echo -e "${GREEN}✅ DNS written to /etc/resolv.conf.${RESET}"
+fi
+
     echo -e "${GREEN}✅ DNS updated with manual input.${RESET}"
   else
     echo -e "${RED}❌ Invalid option.${RESET}"
