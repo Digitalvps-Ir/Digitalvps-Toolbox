@@ -1,5 +1,48 @@
 
 #!/bin/bash
+
+GREEN='\e[32m'
+CYAN='\e[36m'
+WHITE='\e[97m'
+YELLOW='\e[93m'
+if [[ "$(tput colors)" -ge 256 ]]; then
+  RED='\e[38;5;196m'      # Vivid red
+  ORANGE='\e[38;5;202m'   # Warm orange
+  PINK='\e[38;5;205m'     # Hot pink
+  RESET='\e[0m'
+elif [[ "$(tput colors)" -ge 8 ]]; then
+  RED='\e[1;31m'          # Bold red
+  ORANGE='\e[1;33m'       # Fallback yellow-orange
+  PINK='\e[95m'           # Light magenta
+  RESET='\e[0m'
+else
+  RED=''; ORANGE=''; PINK=''; RESET=''
+fi
+
+echo -e "${GREEN}======================================================${RESET}"
+
+echo -e "${RED}"
+echo "██████╗░██╗░██████╗░██╗████████╗░█████╗░██╗░░░░░ ██╗░░░██╗██████╗░░██████╗"
+echo "██╔══██╗██║██╔════╝░██║╚══██╔══╝██╔══██╗██║░░░░░ ██║░░░██║██╔══██╗██╔════╝"
+echo "██║░░██║██║██║░░██╗░██║░░░██║░░░███████║██║░░░░░ ╚██╗░██╔╝██████╔╝╚█████╗░"
+echo "██║░░██║██║██║░░╚██╗██║░░░██║░░░██╔══██║██║░░░░░ ░╚████╔╝░██╔═══╝░░╚═══██╗"
+echo "██████╔╝██║╚██████╔╝██║░░░██║░░░██║░░██║███████╗ ░░╚██╔╝░░██║░░░░░██████╔╝"
+echo "╚═════╝░╚═╝░╚═════╝░╚═╝░░░╚═╝░░░╚═╝░░╚═╝╚══════╝ ░░░╚═╝░░░╚═╝░░░░░╚═════╝░"
+echo
+echo "████████╗░█████╗░░█████╗░██╗░░░░░ ██████╗░░█████╗░██╗░░██╗"
+echo "╚══██╔══╝██╔══██╗██╔══██╗██║░░░░░ ██╔══██╗██╔══██╗╚██╗██╔╝"
+echo "░░░██║░░░██║░░██║██║░░██║██║░░░░░ ██████╦╝██║░░██║░╚███╔╝░"
+echo "░░░██║░░░██║░░██║██║░░██║██║░░░░░ ██╔══██╗██║░░██║░██╔██╗░"
+echo "░░░██║░░░╚█████╔╝╚█████╔╝███████╗ ██████╦╝╚█████╔╝██╔╝╚██╗"
+echo "░░░╚═╝░░░░╚════╝░░╚════╝░╚══════╝ ╚═════╝░░╚════╝░╚═╝░░╚═╝"
+echo -e "${RESET}"
+
+echo -e "${WHITE}       DigitalVPS.ir VPS ToolBox${RESET}"
+echo -e "${WHITE}         ${CYAN}https://github.com/Digitalvps-Ir${RESET}"
+echo -e "${WHITE}     Developed by: ${CYAN}https://github.com/ParsaKSH${RESET}"
+
+echo -e "${GREEN}======================================================${RESET}"
+
 URL="https://raw.githubusercontent.com/Digitalvps-Ir/Digitalvps-Toolbox/refs/heads/main/toolbox.sh"
 DEST="/usr/local/bin/toolbox"
 
