@@ -92,15 +92,14 @@ fi
 draw_menu "ToolBox Menu" \
   "1) Auto-detect best MTU" \
   "2) Enter MTU manually" \
-  "3) Resolve GitHub Problem" \
-  "4) Auto-Detect best APT Mirror" \
-  "5) Auto-Detect best DNS" \
-  "6) Exit"
+  "3) Auto-Detect best APT Mirror" \
+  "4) Auto-Detect best DNS" \
+  "5) Exit"
 
 
 read choice
 
-if [ "$choice" = "6" ]; then
+if [ "$choice" = "5" ]; then
   echo -e "${YELLOW}👋 Exiting. Goodbye.${RESET}"
   exit 0
 
@@ -143,23 +142,9 @@ elif [ "$choice" = "2" ]; then
     exit 1
   fi
 
-elif [ "$choice" = "3" ]; then
-  line1="185.199.111.133 raw.githubusercontent.com"
-  line2="140.82.121.3 github.com"
-  line3="140.82.121.5 api.github.com"
-  line4="185.199.111.153 api.github.io"
-  line5="140.82.121.3 www.github.com"
-  file="/etc/hosts"
 
-  grep -qF "$line1" "$file" || echo "$line1" | tee -a "$file" > /dev/null
-  grep -qF "$line2" "$file" || echo "$line2" | tee -a "$file" > /dev/null
-  grep -qF "$line3" "$file" || echo "$line3" | tee -a "$file" > /dev/null
-  grep -qF "$line4" "$file" || echo "$line4" | tee -a "$file" > /dev/null
-  grep -qF "$line5" "$file" || echo "$line5" | tee -a "$file" > /dev/null
-  echo -e "${GREEN}✅ GitHub access issue resolved!${RESET}"
-  echo -e "${CYAN}🌐 /etc/hosts has been updated with GitHub IPv4 entries.${RESET}"
-  exit 0
-elif [ "$choice" = "4" ]; then
+elif [ "$choice" = "3" ]; then
+
   echo -e "${CYAN}🌍 Detecting best APT mirror...${RESET}"
 
   mirrors=(
@@ -254,7 +239,7 @@ done
   echo -e "${RED}❌ Failed to update package index.${RESET}"
 
   exit 1
-elif [ "$choice" = "5" ]; then
+elif [ "$choice" = "4" ]; then
   echo -e "${CYAN}🛠 DNS Configuration Menu${RESET}"
   echo -e "${WHITE}1) Auto Detect Working DNS${RESET}"
   echo -e "${WHITE}2) Manual Entry${RESET}"
@@ -262,7 +247,13 @@ elif [ "$choice" = "5" ]; then
   read -r dns_choice
 
   if [ "$dns_choice" = "1" ]; then
-    echo -e "${CYAN}🔍 Testing public DNS servers...${RESET}"
+
+    if ! command -v dig >/dev/null 2>&1; then
+      echo -e "${RED}❌ 'dig' not found. Please install it first:${RESET} ${YELLOW}sudo apt install dnsutils${RESET}"
+      exit 1
+    fi
+
+    echo -e "${CYAN}🔍 Testing public DNS servers using dig...${RESET}"
 
     declare -A dns_names=(
       [0]="Electro"
@@ -279,10 +270,12 @@ elif [ "$choice" = "5" ]; then
 
     working=()
     results=()
+
     for i in "${!dns_sets[@]}"; do
       IFS=' ' read -r dns1 dns2 <<< "${dns_sets[$i]}"
-      timeout 2s ping -c1 -W1 "$dns1" >/dev/null 2>&1 && ok1=1 || ok1=0
-      timeout 2s ping -c1 -W1 "$dns2" >/dev/null 2>&1 && ok2=1 || ok2=0
+
+      dig @"$dns1" google.com +short >/dev/null 2>&1 && ok1=1 || ok1=0
+      dig @"$dns2" google.com +short >/dev/null 2>&1 && ok2=1 || ok2=0
 
       if [ "$ok1" -eq 1 ] || [ "$ok2" -eq 1 ]; then
         status="${GREEN}OK${RESET}"
@@ -290,6 +283,7 @@ elif [ "$choice" = "5" ]; then
       else
         status="${RED}Failed${RESET}"
       fi
+
       results+=("$i|${dns_sets[$i]}|$status")
     done
 
@@ -302,33 +296,39 @@ elif [ "$choice" = "5" ]; then
       echo -e "$status"
     done
 
+    if [ ${#working[@]} -eq 0 ]; then
+      echo -e "${RED}❌ No working DNS servers found.${RESET}"
+      exit 1
+    fi
+
     best="${working[0]}"
     echo -e "\n${GREEN}Suggested DNS:${RESET} ${dns_names[$best]} - ${dns_sets[$best]}"
     read -p "$(echo -e "${ORANGE}❓ Enter the number of the DNS to apply [${YELLOW}$((best+1))${ORANGE}]: ${RESET}")" selected
     selected="${selected:-$((best+1))}"
+
     if ! [[ "$selected" =~ ^[0-9]+$ ]] || [ "$selected" -lt 1 ] || [ "$selected" -gt ${#dns_sets[@]} ]; then
       echo -e "${RED}❌ Invalid selection.${RESET}"
       exit 1
     fi
+
     selected_dns="${dns_sets[$((selected-1))]}"
-    echo -e "${CYAN}🔧 Setting DNS to: ${WHITE}$selected_dns${RESET}"
-   dns1=$(echo "$selected_dns" | awk '{print $1}')
-dns2=$(echo "$selected_dns" | awk '{print $2}')
+    dns1=$(echo "$selected_dns" | awk '{print $1}')
+    dns2=$(echo "$selected_dns" | awk '{print $2}')
 
-if systemctl is-active --quiet systemd-resolved; then
-  iface=$(ip route | grep default | awk '{print $5}' | head -n1)
-  echo -e "${CYAN}🔧 systemd-resolved is active. Applying DNS via resolvectl for interface: ${WHITE}$iface${RESET}"
-  resolvectl dns "$iface" "$dns1" "$dns2"
-  resolvectl domain "$iface" "~."
-  echo -e "${GREEN}✅ DNS set using resolvectl.${RESET}"
-else
-  echo -e "${YELLOW}⚠️ systemd-resolved is not active. Writing to /etc/resolv.conf directly.${RESET}"
-  rm -f /etc/resolv.conf
-  echo -e "nameserver $dns1\nnameserver $dns2" > /etc/resolv.conf
-  echo -e "${GREEN}✅ DNS written to /etc/resolv.conf.${RESET}"
-fi
 
-    echo -e "${GREEN}✅ DNS updated (temporarily in /etc/resolv.conf).${RESET}"
+    if systemctl is-active --quiet systemd-resolved; then
+      iface=$(ip route | grep default | awk '{print $5}' | head -n1)
+      echo -e "${CYAN}🔧 systemd-resolved is active. Applying DNS via resolvectl for interface: ${WHITE}$iface${RESET}"
+      resolvectl dns "$iface" "$dns1" "$dns2"
+      resolvectl domain "$iface" "~."
+      echo -e "${GREEN}✅ DNS set using resolvectl.${RESET}"
+    else
+      echo -e "${YELLOW}⚠️ systemd-resolved is not active. Writing to /etc/resolv.conf directly.${RESET}"
+      rm -f /etc/resolv.conf
+      echo -e "nameserver $dns1\nnameserver $dns2" > /etc/resolv.conf
+      echo -e "${GREEN}✅ DNS written to /etc/resolv.conf.${RESET}"
+      echo -e "${GREEN}✅ DNS updated (temporarily in /etc/resolv.conf).${RESET}"
+    fi
 
   elif [ "$dns_choice" = "2" ]; then
     echo -ne "${WHITE}Enter first DNS IP: ${RESET}"
