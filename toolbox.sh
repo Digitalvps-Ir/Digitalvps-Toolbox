@@ -153,7 +153,7 @@ elif [ "$choice" = "3" ]; then
     "http://mirror.aminidc.com/ubuntu"
     "https://ubuntu.pars.host"
     "https://ir.ubuntu.sindad.cloud/ubuntu"
-    "https://ubuntu.shatel.ir/ubuntu"
+    "https://ubuntu.shatel.ir"
     "https://ubuntu.mobinhost.com/ubuntu"
     "https://mirror.iranserver.com/ubuntu"
     "https://mirror.arvancloud.ir/ubuntu"
