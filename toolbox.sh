@@ -202,7 +202,7 @@ for result in "${mirror_results[@]}"; do
   row_color="${WHITE}"
 
 
-  if [[ "$mirror_display" == "ubuntu-mirror.digitalvps.ir" ]]; then
+  if [[ "$mirror_display" == "mirror.digitalvps.ir/ubuntu" ]]; then
     mirror_display="${mirror_display} (our mirror)"
     row_color="${YELLOW}${BOLD}"
   fi
