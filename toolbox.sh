@@ -148,7 +148,7 @@ elif [ "$choice" = "3" ]; then
   echo -e "${CYAN}🌍 Detecting best APT mirror...${RESET}"
 
   mirrors=(
-    "http://ubuntu-mirror.digitalvps.ir"
+    "https://mirror.digitalvps.ir/ubuntu"
     "https://ubuntu.pishgaman.net/ubuntu"
     "http://mirror.aminidc.com/ubuntu"
     "https://ubuntu.pars.host"
