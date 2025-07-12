@@ -1,7 +1,6 @@
 
 <div align="center">
-<img src="![photo_2025-07-12_06-45-32](https://github.com/user-attachments/assets/ada6c9b1-d30f-464b-9886-eab7e70188f7)
-" width="300" />
+<img src="https://github.com/user-attachments/assets/ada6c9b1-d30f-464b-9886-eab7e70188f7" width="300" />
 </div>
 
 
