@@ -104,34 +104,35 @@ if [ "$choice" = "5" ]; then
   exit 0
 
 elif [ "$choice" = "1" ]; then
-  echo -e "${ORANGE}🔍 Detecting best MTU using ping...${RESET}"
-  host="8.8.8.8"
-  lower=1000
-  upper=1500
-  best=0
+ echo -e "${ORANGE}🔍 Detecting best MTU using ping...${RESET}"
+host="8.8.8.8"
+lower=1000
+upper=1500
 
-  ip link set dev "$main_iface" mtu 1500 > /dev/null 2>&1
+ip link set dev "$main_iface" mtu 1500 > /dev/null 2>&1
 
-  while [ $((upper - lower)) -gt 1 ]; do
-    mid=$(((upper + lower) / 2))
-    if ping -M do -s $((mid - 28)) -c 1 "$host" > /dev/null 2>&1; then
-      lower=$mid
-      best=$mid
-    else
-      upper=$mid
-    fi
-  done
+while [ "$lower" -lt "$upper" ]; do
+  mid=$(((lower + upper + 1) / 2))
 
-  mtu_value=$best
-  echo -e "${PINK}✅ Best MTU detected: ${WHITE}$mtu_value${RESET}"
-  
-  read -p "$(echo -e "${ORANGE}❓ Do you want to apply this MTU? [y/N]: ${RESET}")" confirm
-  if [[ "$confirm" =~ ^[Yy]$ ]]; then
-    echo -e "${ORANGE}🔧 Applying MTU ${WHITE}$mtu_value${RESET} to interface ${WHITE}$main_iface${RESET}..."
+  if ping -M do -s $((mid - 28)) -c 1 "$host" > /dev/null 2>&1; then
+
+    lower=$mid
   else
-    echo -e "${YELLOW}⚠️ Operation cancelled by user.${RESET}"
-    exit 0
+    upper=$((mid - 1))
   fi
+done
+
+mtu_value=$lower
+echo -e "${PINK}✅ Best MTU detected: ${WHITE}$mtu_value${RESET}"
+
+read -p "$(echo -e "${ORANGE}❓ Do you want to apply this MTU? [y/N]: ${RESET}")" confirm
+if [[ "$confirm" =~ ^[Yy]$ ]]; then
+  echo -e "${ORANGE}🔧 Applying MTU ${WHITE}$mtu_value${RESET} to interface ${WHITE}$main_iface${RESET}..."
+else
+  echo -e "${YELLOW}⚠️ Operation cancelled by user.${RESET}"
+  exit 0
+fi
+
 
 elif [ "$choice" = "2" ]; then
   prompt="${WHITE}Enter desired MTU value (e.g., 1420):${RESET} "
