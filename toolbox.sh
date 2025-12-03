@@ -41,7 +41,17 @@ echo -e "${WHITE}         ${CYAN}https://github.com/Digitalvps-Ir${RESET}"
 echo -e "${WHITE}     Developed by: ${CYAN}https://github.com/ParsaKSH${RESET}"
 
 echo -e "${GREEN}======================================================${RESET}"
+is_iran_server() {
+    country=$(curl -s https://ipinfo.io/country 2>/dev/null)
 
+    country=$(echo "$country" | tr '[:lower:]' '[:upper:]')
+
+    if [ "$country" = "IR" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
 draw_menu() {
   local title="$1"
   shift
@@ -93,7 +103,7 @@ draw_menu "ToolBox Menu" \
   "1) Auto-detect best MTU" \
   "2) Enter MTU manually" \
   "3) Auto-Detect best APT Mirror" \
-  "4) Auto-Detect best DNS" \
+  "4) DNS" \
   "5) Exit"
 
 
@@ -104,65 +114,70 @@ if [ "$choice" = "5" ]; then
   exit 0
 
 elif [ "$choice" = "1" ]; then
-  echo -e "${ORANGE}🔍 Detecting best MTU using ping...${RESET}"
-  host="8.8.8.8"
-  lower=1000
-  upper=1500
-  best=0
+ echo -e "${ORANGE}🔍 Detecting best MTU using ping...${RESET}"
+host="8.8.8.8"
+lower=1000
+upper=1500
 
-  ip link set dev "$main_iface" mtu 1500 > /dev/null 2>&1
+ip link set dev "$main_iface" mtu 1500 > /dev/null 2>&1
 
-  while [ $((upper - lower)) -gt 1 ]; do
-    mid=$(((upper + lower) / 2))
-    if ping -M do -s $((mid - 28)) -c 1 "$host" > /dev/null 2>&1; then
-      lower=$mid
-      best=$mid
-    else
-      upper=$mid
-    fi
-  done
+while [ "$lower" -lt "$upper" ]; do
+  mid=$(((lower + upper + 1) / 2))
 
-  mtu_value=$best
-  echo -e "${PINK}✅ Best MTU detected: ${WHITE}$mtu_value${RESET}"
-  
-  read -p "$(echo -e "${ORANGE}❓ Do you want to apply this MTU? [y/N]: ${RESET}")" confirm
-  if [[ "$confirm" =~ ^[Yy]$ ]]; then
-    echo -e "${ORANGE}🔧 Applying MTU ${WHITE}$mtu_value${RESET} to interface ${WHITE}$main_iface${RESET}..."
+  if ping -M do -s $((mid - 28)) -c 1 "$host" > /dev/null 2>&1; then
+
+    lower=$mid
   else
-    echo -e "${YELLOW}⚠️ Operation cancelled by user.${RESET}"
-    exit 0
+    upper=$((mid - 1))
   fi
+done
 
-elif [ "$choice" = "2" ]; then
-  prompt="${WHITE}Enter desired MTU value (e.g., 1420):${RESET} "
-  read -p "$(echo -e "$prompt")" mtu_value
+mtu_value=$lower
+echo -e "${PINK}✅ Best MTU detected: ${WHITE}$mtu_value${RESET}"
 
-  if ! [[ "$mtu_value" =~ ^[0-9]+$ ]]; then
-    echo -e "${RED}❌ Invalid MTU value.${RESET}"
-    exit 1
-  fi
+read -p "$(echo -e "${ORANGE}❓ Do you want to apply this MTU? [y/N]: ${RESET}")" confirm
+if [[ "$confirm" =~ ^[Yy]$ ]]; then
+  echo -e "${ORANGE}🔧 Applying MTU ${WHITE}$mtu_value${RESET} to interface ${WHITE}$main_iface${RESET}..."
+else
+  echo -e "${YELLOW}⚠️ Operation cancelled by user.${RESET}"
+  exit 0
+fi
 
 
 elif [ "$choice" = "3" ]; then
 
-  echo -e "${CYAN}🌍 Detecting best APT mirror...${RESET}"
+  echo -e "${CYAN}🌍 Checking server location...${RESET}"
 
-  mirrors=(
-    "https://mirror.digitalvps.ir/ubuntu"
-    "https://ubuntu.pishgaman.net/ubuntu"
-    "http://mirror.aminidc.com/ubuntu"
-    "https://ubuntu.pars.host"
-    "https://ir.ubuntu.sindad.cloud/ubuntu"
-    "https://ubuntu.shatel.ir"
-    "https://ubuntu.mobinhost.com/ubuntu"
-    "https://mirror.iranserver.com/ubuntu"
-    "https://mirror.arvancloud.ir/ubuntu"
-    "http://ir.archive.ubuntu.com/ubuntu"
-    "https://ubuntu.parsvds.com/ubuntu/"
-    "https://iranrepo.ir/ubuntu"
-    "https://repo.iut.ac.ir/ubuntu/"
-    "https://ubuntu-mirror.kimiahost.com"
-  )
+  is_iran_server
+  if [ $? -eq 0 ]; then
+      echo -e "${GREEN}✔ Server is located in IRAN. Using Iranian mirrors only.${RESET}"
+      mirrors=(
+        "https://mirror.digitalvps.ir/ubuntu"
+        "https://ubuntu.pishgaman.net/ubuntu"
+        "http://mirror.aminidc.com/ubuntu"
+        "https://ubuntu.pars.host"
+        "https://ir.ubuntu.sindad.cloud/ubuntu"
+        "https://ubuntu.shatel.ir"
+        "https://ubuntu.mobinhost.com/ubuntu"
+        "https://mirror.iranserver.com/ubuntu"
+        "https://mirror.arvancloud.ir/ubuntu"
+        "http://ir.archive.ubuntu.com/ubuntu"
+        "https://ubuntu.parsvds.com/ubuntu/"
+        "https://repo.linuxmirrors.ir/ubuntu/"
+        "https://iranrepo.ir/ubuntu"
+        "https://repo.iut.ac.ir/ubuntu/"
+        "https://ubuntu-mirror.kimiahost.com"
+      )
+  else
+      echo -e "${YELLOW}⚠ Server is NOT in Iran. Using NON-Iranian mirrors only.${RESET}"
+      mirrors=(
+        "http://mirrors.asnet.am/ubuntu/"
+        "http://mirror.datacenter.az/ubuntu/"
+        "http://mirrors.tuna.tsinghua.edu.cn/ubuntu/"
+        "http://ubuntu.mirrors.ovh.net/ubuntu/"
+        "http://de.archive.ubuntu.com"
+      )
+  fi
 
   declare -a mirror_results=()
   best_speed=0
@@ -190,40 +205,34 @@ elif [ "$choice" = "3" ]; then
       best_index=$i
     fi
   done
-echo -e "\n${CYAN}📊 Mirror Speed Results:${RESET}"
-printf "${GREEN}%-4s %-45s %-10s${RESET}\n" "No." "Mirror" "Speed"
-echo -e "${WHITE}---------------------------------------------------------------${RESET}"
 
-for result in "${mirror_results[@]}"; do
-  IFS='|' read -r idx mirror kb speed <<< "$result"
-  mirror_display="$(echo "$mirror" | sed 's|https\?://||')"
+  echo -e "\n${CYAN}📊 Mirror Speed Results:${RESET}"
+  printf "${GREEN}%-4s %-45s %-10s${RESET}\n" "No." "Mirror" "Speed"
+  echo -e "${WHITE}---------------------------------------------------------------${RESET}"
 
+  for result in "${mirror_results[@]}"; do
+    IFS='|' read -r idx mirror kb speed <<< "$result"
+    mirror_display="$(echo "$mirror" | sed 's|https\?://||')"
 
-  row_color="${WHITE}"
+    row_color="${WHITE}"
 
+    if [[ "$mirror_display" == "mirror.digitalvps.ir/ubuntu" ]]; then
+      mirror_display="${mirror_display} (our mirror)"
+      row_color="${YELLOW}${BOLD}"
+    fi
 
-  if [[ "$mirror_display" == "mirror.digitalvps.ir/ubuntu" ]]; then
-    mirror_display="${mirror_display} (our mirror)"
-    row_color="${YELLOW}${BOLD}"
-  fi
+    if [[ "$speed" == "Failed" ]]; then
+      row_color="${RED}"
+    fi
 
+    if [[ "$idx" -eq "$best_index" ]]; then
+      row_color="${CYAN}${BOLD}"
+    fi
 
-  if [[ "$speed" == "Failed" ]]; then
-    row_color="${RED}"
-  fi
-
-
-  if [[ "$idx" -eq "$best_index" ]]; then
-    row_color="${CYAN}${BOLD}"
-  fi
-
-  
-  printf "%b%-4s%b " "$row_color" "$((idx + 1))" "$RESET"
-  printf "%b%-45s%b " "$row_color" "$mirror_display" "$RESET"
-  printf "%b%-10s%b\n" "$row_color" "$speed" "$RESET"
-done
-
-
+    printf "%b%-4s%b " "$row_color" "$((idx + 1))" "$RESET"
+    printf "%b%-45s%b " "$row_color" "$mirror_display" "$RESET"
+    printf "%b%-10s%b\n" "$row_color" "$speed" "$RESET"
+  done
 
   best_mirror="${mirrors[$best_index]}"
   echo -e "\n${GREEN}✅ Suggested (fastest) mirror: ${WHITE}$best_mirror${RESET}"
@@ -256,34 +265,53 @@ done
   echo -e "${RED}❌ Failed to update package index.${RESET}"
 
   exit 1
+
 elif [ "$choice" = "4" ]; then
   echo -e "${CYAN}🛠 DNS Configuration Menu${RESET}"
-  echo -e "${WHITE}1) Auto Detect Working DNS${RESET}"
-  echo -e "${WHITE}2) Manual Entry${RESET}"
-  echo -ne "${YELLOW}Choose an option [1/2]: ${RESET}"
+  echo -e "${WHITE}1) Normal DNS (Auto Detect)${RESET}"
+  echo -e "${WHITE}2) Anti-Tahrim DNS (Auto Detect)${RESET}"
+  echo -e "${WHITE}3) Manual Entry${RESET}"
+  echo -ne "${YELLOW}Choose an option [1/2/3]: ${RESET}"
   read -r dns_choice
 
-  if [ "$dns_choice" = "1" ]; then
+  if [ "$dns_choice" = "1" ] || [ "$dns_choice" = "2" ]; then
 
     if ! command -v dig >/dev/null 2>&1; then
       echo -e "${RED}❌ 'dig' not found. Please install it first:${RESET} ${YELLOW}sudo apt install dnsutils${RESET}"
       exit 1
     fi
 
-    echo -e "${CYAN}🔍 Testing public DNS servers using dig...${RESET}"
+    if [ "$dns_choice" = "1" ]; then
+      profile="Normal"
+      echo -e "${CYAN}🔍 Testing Normal public DNS servers using dig...${RESET}"
 
-    declare -A dns_names=(
-      [0]="Electro"
-      [1]="Shekan"
-      [2]="Dnspro"
-      [3]="Pishgaman"
-    )
-    dns_sets=(
-      "78.157.42.100 78.157.42.101"
-      "178.22.122.100 185.51.200.2"
-      "87.107.110.109 87.107.110.110"
-      "5.202.100.100 5.202.100.101"
-    )
+      declare -A dns_names=(
+        [0]="Google"
+        [1]="Cloudflare"
+        [2]="Quad9"
+      )
+      dns_sets=(
+        "8.8.8.8 8.8.4.4"
+        "1.1.1.1 1.0.0.1"
+        "9.9.9.9 149.112.112.112"
+      )
+    else
+      profile="Anti-Tahrim"
+      echo -e "${CYAN}🔍 Testing Anti-Tahrim DNS servers using dig...${RESET}"
+
+      declare -A dns_names=(
+        [0]="Electro"
+        [1]="Shekan"
+        [2]="Dnspro"
+        [3]="Pishgaman"
+      )
+      dns_sets=(
+        "78.157.42.100 78.157.42.101"
+        "178.22.122.100 185.51.200.2"
+        "87.107.110.109 87.107.110.110"
+        "5.202.100.100 5.202.100.101"
+      )
+    fi
 
     working=()
     results=()
@@ -304,7 +332,7 @@ elif [ "$choice" = "4" ]; then
       results+=("$i|${dns_sets[$i]}|$status")
     done
 
-    echo -e "\n${CYAN}📊 DNS Test Results:${RESET}"
+    echo -e "\n${CYAN}📊 DNS Test Results (${profile}):${RESET}"
     printf "${GREEN}%-4s %-25s %-10s${RESET}\n" "No." "DNS Servers" "Status"
     echo -e "${WHITE}----------------------------------------------------${RESET}"
     for r in "${results[@]}"; do
@@ -314,12 +342,12 @@ elif [ "$choice" = "4" ]; then
     done
 
     if [ ${#working[@]} -eq 0 ]; then
-      echo -e "${RED}❌ No working DNS servers found.${RESET}"
+      echo -e "${RED}❌ No working DNS servers found in ${profile} list.${RESET}"
       exit 1
     fi
 
     best="${working[0]}"
-    echo -e "\n${GREEN}Suggested DNS:${RESET} ${dns_names[$best]} - ${dns_sets[$best]}"
+    echo -e "\n${GREEN}Suggested DNS (${profile}):${RESET} ${dns_names[$best]} - ${dns_sets[$best]}"
     read -p "$(echo -e "${ORANGE}❓ Enter the number of the DNS to apply [${YELLOW}$((best+1))${ORANGE}]: ${RESET}")" selected
     selected="${selected:-$((best+1))}"
 
@@ -331,7 +359,6 @@ elif [ "$choice" = "4" ]; then
     selected_dns="${dns_sets[$((selected-1))]}"
     dns1=$(echo "$selected_dns" | awk '{print $1}')
     dns2=$(echo "$selected_dns" | awk '{print $2}')
-
 
     if systemctl is-active --quiet systemd-resolved; then
       iface=$(ip route | grep default | awk '{print $5}' | head -n1)
@@ -347,34 +374,52 @@ elif [ "$choice" = "4" ]; then
       echo -e "${GREEN}✅ DNS updated (temporarily in /etc/resolv.conf).${RESET}"
     fi
 
-  elif [ "$dns_choice" = "2" ]; then
+  elif [ "$dns_choice" = "3" ]; then
     echo -ne "${WHITE}Enter first DNS IP: ${RESET}"
     read -r dns1
-    echo -ne "${WHITE}Enter second DNS IP: ${RESET}"
+    echo -ne "${WHITE}Enter second DNS IP (optional, press Enter to skip): ${RESET}"
     read -r dns2
 
-if systemctl is-active --quiet systemd-resolved; then
-  iface=$(ip route | grep default | awk '{print $5}' | head -n1)
-  echo -e "${CYAN}🔧 systemd-resolved is active. Applying DNS via resolvectl for interface: ${WHITE}$iface${RESET}"
-  resolvectl dns "$iface" "$dns1" "$dns2"
-  resolvectl domain "$iface" "~."
-  echo -e "${GREEN}✅ DNS set using resolvectl.${RESET}"
-else
-  echo -e "${YELLOW}⚠️ systemd-resolved is not active. Writing to /etc/resolv.conf directly.${RESET}"
-  rm -f /etc/resolv.conf
-  echo -e "nameserver $dns1\nnameserver $dns2" > /etc/resolv.conf
-  echo -e "${GREEN}✅ DNS written to /etc/resolv.conf.${RESET}"
-fi
+    if [ -z "$dns1" ]; then
+      echo -e "${RED}❌ First DNS IP cannot be empty.${RESET}"
+      exit 1
+    fi
+
+    if systemctl is-active --quiet systemd-resolved; then
+      iface=$(ip route | grep default | awk '{print $5}' | head -n1)
+      echo -e "${CYAN}🔧 systemd-resolved is active. Applying DNS via resolvectl for interface: ${WHITE}$iface${RESET}"
+
+      if [ -n "$dns2" ]; then
+        resolvectl dns "$iface" "$dns1" "$dns2"
+      else
+        resolvectl dns "$iface" "$dns1"
+      fi
+
+      resolvectl domain "$iface" "~."
+      echo -e "${GREEN}✅ DNS set using resolvectl.${RESET}"
+    else
+      echo -e "${YELLOW}⚠️ systemd-resolved is not active. Writing to /etc/resolv.conf directly.${RESET}"
+      rm -f /etc/resolv.conf
+      if [ -n "$dns2" ]; then
+        printf "nameserver %s\nnameserver %s\n" "$dns1" "$dns2" > /etc/resolv.conf
+      else
+        printf "nameserver %s\n" "$dns1" > /etc/resolv.conf
+      fi
+      echo -e "${GREEN}✅ DNS written to /etc/resolv.conf.${RESET}"
+    fi
 
     echo -e "${GREEN}✅ DNS updated with manual input.${RESET}"
   else
     echo -e "${RED}❌ Invalid option.${RESET}"
+    exit 1
   fi
-  exit 1  
+
+  exit 0
 else
   echo -e "${RED}❌ Invalid choice.${RESET}"
   exit 1
 fi
+
 echo -e "${CYAN}🔧 Setting MTU for ${main_iface} to ${mtu_value}...${RESET}"
 ip link set dev "$main_iface" mtu "$mtu_value"
 if [ $? -eq 0 ]; then
