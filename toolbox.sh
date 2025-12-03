@@ -93,7 +93,7 @@ draw_menu "ToolBox Menu" \
   "1) Auto-detect best MTU" \
   "2) Enter MTU manually" \
   "3) Auto-Detect best APT Mirror" \
-  "4) Auto-Detect best DNS" \
+  "4) DNS" \
   "5) Exit"
 
 
@@ -265,32 +265,50 @@ done
   exit 1
 elif [ "$choice" = "4" ]; then
   echo -e "${CYAN}🛠 DNS Configuration Menu${RESET}"
-  echo -e "${WHITE}1) Auto Detect Working DNS${RESET}"
-  echo -e "${WHITE}2) Manual Entry${RESET}"
-  echo -ne "${YELLOW}Choose an option [1/2]: ${RESET}"
+  echo -e "${WHITE}1) Normal DNS (Auto Detect)${RESET}"
+  echo -e "${WHITE}2) Anti-Tahrim DNS (Auto Detect)${RESET}"
+  echo -e "${WHITE}3) Manual Entry${RESET}"
+  echo -ne "${YELLOW}Choose an option [1/2/3]: ${RESET}"
   read -r dns_choice
 
-  if [ "$dns_choice" = "1" ]; then
+  if [ "$dns_choice" = "1" ] || [ "$dns_choice" = "2" ]; then
 
     if ! command -v dig >/dev/null 2>&1; then
       echo -e "${RED}❌ 'dig' not found. Please install it first:${RESET} ${YELLOW}sudo apt install dnsutils${RESET}"
       exit 1
     fi
 
-    echo -e "${CYAN}🔍 Testing public DNS servers using dig...${RESET}"
+    if [ "$dns_choice" = "1" ]; then
+      profile="Normal"
+      echo -e "${CYAN}🔍 Testing Normal public DNS servers using dig...${RESET}"
 
-    declare -A dns_names=(
-      [0]="Electro"
-      [1]="Shekan"
-      [2]="Dnspro"
-      [3]="Pishgaman"
-    )
-    dns_sets=(
-      "78.157.42.100 78.157.42.101"
-      "178.22.122.100 185.51.200.2"
-      "87.107.110.109 87.107.110.110"
-      "5.202.100.100 5.202.100.101"
-    )
+      declare -A dns_names=(
+        [0]="Google"
+        [1]="Cloudflare"
+        [2]="Quad9"
+      )
+      dns_sets=(
+        "8.8.8.8 8.8.4.4"
+        "1.1.1.1 1.0.0.1"
+        "9.9.9.9 149.112.112.112"
+      )
+    else
+      profile="Anti-Tahrim"
+      echo -e "${CYAN}🔍 Testing Anti-Tahrim DNS servers using dig...${RESET}"
+
+      declare -A dns_names=(
+        [0]="Electro"
+        [1]="Shekan"
+        [2]="Dnspro"
+        [3]="Pishgaman"
+      )
+      dns_sets=(
+        "78.157.42.100 78.157.42.101"
+        "178.22.122.100 185.51.200.2"
+        "87.107.110.109 87.107.110.110"
+        "5.202.100.100 5.202.100.101"
+      )
+    fi
 
     working=()
     results=()
@@ -311,7 +329,7 @@ elif [ "$choice" = "4" ]; then
       results+=("$i|${dns_sets[$i]}|$status")
     done
 
-    echo -e "\n${CYAN}📊 DNS Test Results:${RESET}"
+    echo -e "\n${CYAN}📊 DNS Test Results (${profile}):${RESET}"
     printf "${GREEN}%-4s %-25s %-10s${RESET}\n" "No." "DNS Servers" "Status"
     echo -e "${WHITE}----------------------------------------------------${RESET}"
     for r in "${results[@]}"; do
@@ -321,12 +339,12 @@ elif [ "$choice" = "4" ]; then
     done
 
     if [ ${#working[@]} -eq 0 ]; then
-      echo -e "${RED}❌ No working DNS servers found.${RESET}"
+      echo -e "${RED}❌ No working DNS servers found in ${profile} list.${RESET}"
       exit 1
     fi
 
     best="${working[0]}"
-    echo -e "\n${GREEN}Suggested DNS:${RESET} ${dns_names[$best]} - ${dns_sets[$best]}"
+    echo -e "\n${GREEN}Suggested DNS (${profile}):${RESET} ${dns_names[$best]} - ${dns_sets[$best]}"
     read -p "$(echo -e "${ORANGE}❓ Enter the number of the DNS to apply [${YELLOW}$((best+1))${ORANGE}]: ${RESET}")" selected
     selected="${selected:-$((best+1))}"
 
@@ -338,7 +356,6 @@ elif [ "$choice" = "4" ]; then
     selected_dns="${dns_sets[$((selected-1))]}"
     dns1=$(echo "$selected_dns" | awk '{print $1}')
     dns2=$(echo "$selected_dns" | awk '{print $2}')
-
 
     if systemctl is-active --quiet systemd-resolved; then
       iface=$(ip route | grep default | awk '{print $5}' | head -n1)
@@ -354,34 +371,52 @@ elif [ "$choice" = "4" ]; then
       echo -e "${GREEN}✅ DNS updated (temporarily in /etc/resolv.conf).${RESET}"
     fi
 
-  elif [ "$dns_choice" = "2" ]; then
+  elif [ "$dns_choice" = "3" ]; then
     echo -ne "${WHITE}Enter first DNS IP: ${RESET}"
     read -r dns1
-    echo -ne "${WHITE}Enter second DNS IP: ${RESET}"
+    echo -ne "${WHITE}Enter second DNS IP (optional, press Enter to skip): ${RESET}"
     read -r dns2
 
-if systemctl is-active --quiet systemd-resolved; then
-  iface=$(ip route | grep default | awk '{print $5}' | head -n1)
-  echo -e "${CYAN}🔧 systemd-resolved is active. Applying DNS via resolvectl for interface: ${WHITE}$iface${RESET}"
-  resolvectl dns "$iface" "$dns1" "$dns2"
-  resolvectl domain "$iface" "~."
-  echo -e "${GREEN}✅ DNS set using resolvectl.${RESET}"
-else
-  echo -e "${YELLOW}⚠️ systemd-resolved is not active. Writing to /etc/resolv.conf directly.${RESET}"
-  rm -f /etc/resolv.conf
-  echo -e "nameserver $dns1\nnameserver $dns2" > /etc/resolv.conf
-  echo -e "${GREEN}✅ DNS written to /etc/resolv.conf.${RESET}"
-fi
+    if [ -z "$dns1" ]; then
+      echo -e "${RED}❌ First DNS IP cannot be empty.${RESET}"
+      exit 1
+    fi
+
+    if systemctl is-active --quiet systemd-resolved; then
+      iface=$(ip route | grep default | awk '{print $5}' | head -n1)
+      echo -e "${CYAN}🔧 systemd-resolved is active. Applying DNS via resolvectl for interface: ${WHITE}$iface${RESET}"
+
+      if [ -n "$dns2" ]; then
+        resolvectl dns "$iface" "$dns1" "$dns2"
+      else
+        resolvectl dns "$iface" "$dns1"
+      fi
+
+      resolvectl domain "$iface" "~."
+      echo -e "${GREEN}✅ DNS set using resolvectl.${RESET}"
+    else
+      echo -e "${YELLOW}⚠️ systemd-resolved is not active. Writing to /etc/resolv.conf directly.${RESET}"
+      rm -f /etc/resolv.conf
+      if [ -n "$dns2" ]; then
+        printf "nameserver %s\nnameserver %s\n" "$dns1" "$dns2" > /etc/resolv.conf
+      else
+        printf "nameserver %s\n" "$dns1" > /etc/resolv.conf
+      fi
+      echo -e "${GREEN}✅ DNS written to /etc/resolv.conf.${RESET}"
+    fi
 
     echo -e "${GREEN}✅ DNS updated with manual input.${RESET}"
   else
     echo -e "${RED}❌ Invalid option.${RESET}"
+    exit 1
   fi
-  exit 1  
+
+  exit 0
 else
   echo -e "${RED}❌ Invalid choice.${RESET}"
   exit 1
 fi
+
 echo -e "${CYAN}🔧 Setting MTU for ${main_iface} to ${mtu_value}...${RESET}"
 ip link set dev "$main_iface" mtu "$mtu_value"
 if [ $? -eq 0 ]; then
