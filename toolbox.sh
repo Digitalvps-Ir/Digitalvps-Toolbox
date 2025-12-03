@@ -159,9 +159,15 @@ elif [ "$choice" = "3" ]; then
     "https://mirror.arvancloud.ir/ubuntu"
     "http://ir.archive.ubuntu.com/ubuntu"
     "https://ubuntu.parsvds.com/ubuntu/"
+    "https://repo.linuxmirrors.ir/ubuntu/"
     "https://iranrepo.ir/ubuntu"
     "https://repo.iut.ac.ir/ubuntu/"
     "https://ubuntu-mirror.kimiahost.com"
+    "http://mirrors.asnet.am/ubuntu/"
+    "http://mirror.datacenter.az/ubuntu/"
+    "http://mirrors.tuna.tsinghua.edu.cn/ubuntu/"
+    "http://ubuntu.mirrors.ovh.net/ubuntu/"
+    "http://de.archive.ubuntu.com"
   )
 
   declare -a mirror_results=()
