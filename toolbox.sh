@@ -41,7 +41,17 @@ echo -e "${WHITE}         ${CYAN}https://github.com/Digitalvps-Ir${RESET}"
 echo -e "${WHITE}     Developed by: ${CYAN}https://github.com/ParsaKSH${RESET}"
 
 echo -e "${GREEN}======================================================${RESET}"
+is_iran_server() {
+    country=$(curl -s https://ipinfo.io/country 2>/dev/null)
 
+    country=$(echo "$country" | tr '[:lower:]' '[:upper:]')
+
+    if [ "$country" = "IR" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
 draw_menu() {
   local title="$1"
   shift
@@ -134,42 +144,40 @@ else
 fi
 
 
-elif [ "$choice" = "2" ]; then
-  prompt="${WHITE}Enter desired MTU value (e.g., 1420):${RESET} "
-  read -p "$(echo -e "$prompt")" mtu_value
-
-  if ! [[ "$mtu_value" =~ ^[0-9]+$ ]]; then
-    echo -e "${RED}❌ Invalid MTU value.${RESET}"
-    exit 1
-  fi
-
-
 elif [ "$choice" = "3" ]; then
 
-  echo -e "${CYAN}🌍 Detecting best APT mirror...${RESET}"
+  echo -e "${CYAN}🌍 Checking server location...${RESET}"
 
-  mirrors=(
-    "https://mirror.digitalvps.ir/ubuntu"
-    "https://ubuntu.pishgaman.net/ubuntu"
-    "http://mirror.aminidc.com/ubuntu"
-    "https://ubuntu.pars.host"
-    "https://ir.ubuntu.sindad.cloud/ubuntu"
-    "https://ubuntu.shatel.ir"
-    "https://ubuntu.mobinhost.com/ubuntu"
-    "https://mirror.iranserver.com/ubuntu"
-    "https://mirror.arvancloud.ir/ubuntu"
-    "http://ir.archive.ubuntu.com/ubuntu"
-    "https://ubuntu.parsvds.com/ubuntu/"
-    "https://repo.linuxmirrors.ir/ubuntu/"
-    "https://iranrepo.ir/ubuntu"
-    "https://repo.iut.ac.ir/ubuntu/"
-    "https://ubuntu-mirror.kimiahost.com"
-    "http://mirrors.asnet.am/ubuntu/"
-    "http://mirror.datacenter.az/ubuntu/"
-    "http://mirrors.tuna.tsinghua.edu.cn/ubuntu/"
-    "http://ubuntu.mirrors.ovh.net/ubuntu/"
-    "http://de.archive.ubuntu.com"
-  )
+  is_iran_server
+  if [ $? -eq 0 ]; then
+      echo -e "${GREEN}✔ Server is located in IRAN. Using Iranian mirrors only.${RESET}"
+      mirrors=(
+        "https://mirror.digitalvps.ir/ubuntu"
+        "https://ubuntu.pishgaman.net/ubuntu"
+        "http://mirror.aminidc.com/ubuntu"
+        "https://ubuntu.pars.host"
+        "https://ir.ubuntu.sindad.cloud/ubuntu"
+        "https://ubuntu.shatel.ir"
+        "https://ubuntu.mobinhost.com/ubuntu"
+        "https://mirror.iranserver.com/ubuntu"
+        "https://mirror.arvancloud.ir/ubuntu"
+        "http://ir.archive.ubuntu.com/ubuntu"
+        "https://ubuntu.parsvds.com/ubuntu/"
+        "https://repo.linuxmirrors.ir/ubuntu/"
+        "https://iranrepo.ir/ubuntu"
+        "https://repo.iut.ac.ir/ubuntu/"
+        "https://ubuntu-mirror.kimiahost.com"
+      )
+  else
+      echo -e "${YELLOW}⚠ Server is NOT in Iran. Using NON-Iranian mirrors only.${RESET}"
+      mirrors=(
+        "http://mirrors.asnet.am/ubuntu/"
+        "http://mirror.datacenter.az/ubuntu/"
+        "http://mirrors.tuna.tsinghua.edu.cn/ubuntu/"
+        "http://ubuntu.mirrors.ovh.net/ubuntu/"
+        "http://de.archive.ubuntu.com"
+      )
+  fi
 
   declare -a mirror_results=()
   best_speed=0
@@ -197,40 +205,34 @@ elif [ "$choice" = "3" ]; then
       best_index=$i
     fi
   done
-echo -e "\n${CYAN}📊 Mirror Speed Results:${RESET}"
-printf "${GREEN}%-4s %-45s %-10s${RESET}\n" "No." "Mirror" "Speed"
-echo -e "${WHITE}---------------------------------------------------------------${RESET}"
 
-for result in "${mirror_results[@]}"; do
-  IFS='|' read -r idx mirror kb speed <<< "$result"
-  mirror_display="$(echo "$mirror" | sed 's|https\?://||')"
+  echo -e "\n${CYAN}📊 Mirror Speed Results:${RESET}"
+  printf "${GREEN}%-4s %-45s %-10s${RESET}\n" "No." "Mirror" "Speed"
+  echo -e "${WHITE}---------------------------------------------------------------${RESET}"
 
+  for result in "${mirror_results[@]}"; do
+    IFS='|' read -r idx mirror kb speed <<< "$result"
+    mirror_display="$(echo "$mirror" | sed 's|https\?://||')"
 
-  row_color="${WHITE}"
+    row_color="${WHITE}"
 
+    if [[ "$mirror_display" == "mirror.digitalvps.ir/ubuntu" ]]; then
+      mirror_display="${mirror_display} (our mirror)"
+      row_color="${YELLOW}${BOLD}"
+    fi
 
-  if [[ "$mirror_display" == "mirror.digitalvps.ir/ubuntu" ]]; then
-    mirror_display="${mirror_display} (our mirror)"
-    row_color="${YELLOW}${BOLD}"
-  fi
+    if [[ "$speed" == "Failed" ]]; then
+      row_color="${RED}"
+    fi
 
+    if [[ "$idx" -eq "$best_index" ]]; then
+      row_color="${CYAN}${BOLD}"
+    fi
 
-  if [[ "$speed" == "Failed" ]]; then
-    row_color="${RED}"
-  fi
-
-
-  if [[ "$idx" -eq "$best_index" ]]; then
-    row_color="${CYAN}${BOLD}"
-  fi
-
-  
-  printf "%b%-4s%b " "$row_color" "$((idx + 1))" "$RESET"
-  printf "%b%-45s%b " "$row_color" "$mirror_display" "$RESET"
-  printf "%b%-10s%b\n" "$row_color" "$speed" "$RESET"
-done
-
-
+    printf "%b%-4s%b " "$row_color" "$((idx + 1))" "$RESET"
+    printf "%b%-45s%b " "$row_color" "$mirror_display" "$RESET"
+    printf "%b%-10s%b\n" "$row_color" "$speed" "$RESET"
+  done
 
   best_mirror="${mirrors[$best_index]}"
   echo -e "\n${GREEN}✅ Suggested (fastest) mirror: ${WHITE}$best_mirror${RESET}"
@@ -263,6 +265,7 @@ done
   echo -e "${RED}❌ Failed to update package index.${RESET}"
 
   exit 1
+
 elif [ "$choice" = "4" ]; then
   echo -e "${CYAN}🛠 DNS Configuration Menu${RESET}"
   echo -e "${WHITE}1) Normal DNS (Auto Detect)${RESET}"
