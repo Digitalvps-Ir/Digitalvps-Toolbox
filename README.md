@@ -23,7 +23,7 @@
 
 **DigitalVps ToolBox** یک ابزار قدرتمند و کاملاً رایگان برای مدیریت و بهینه‌سازی سرورهای لینوکسی است که توسط تیم حرفه‌ای **[DigitalVps.ir](https://digitalvps.ir)** توسعه یافته است.
 
-### 🎯 چرا DigitalVps ToolBox؟
+### 🎯 چرا DigitalVps ToolBox ؟
 
 <table>
 <tr>
