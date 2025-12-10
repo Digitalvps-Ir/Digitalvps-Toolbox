@@ -15,8 +15,6 @@
 
 ---
 
-![DigitalVps ToolBox Demo](https://via.placeholder.com/800x400/1a1a2e/16c79a?text=DigitalVps+ToolBox+Demo)
-
 </div>
 
 ---
