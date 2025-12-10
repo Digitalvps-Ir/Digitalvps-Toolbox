@@ -10,7 +10,7 @@
 [![Platform](https://img.shields.io/badge/platform-Linux-orange.svg)](https://www.linux.org/)
 [![Made with Love](https://img.shields.io/badge/Made%20with-❤️-red.svg)](https://digitalvps.ir)
 
-**• بهینه‌سازی هوشمند • نصب آسان • رایگان و متن‌باز**
+**• بهینه‌سازی هوشمند • نصب آسان • رایگان و متن‌ باز**
 
 [🎯 شروع سریع](#-نصب-و-راه-اندازی) • [💬 پشتیبانی](https://t.me/digitalvps_group) • [🌐 وب‌سایت](https://digitalvps.ir)
 
