@@ -41,7 +41,7 @@
 <td width="33%" align="center">
 <img src="https://img.icons8.com/fluency/96/000000/checked.png" width="64"/>
 <h3>قابل اعتماد</h3>
-<p>تست شده روی صد ها سرور و Vps</p>
+<p> تست شده روی صد ها سرور و Vps </p>
 </td>
 </tr>
 </table>
