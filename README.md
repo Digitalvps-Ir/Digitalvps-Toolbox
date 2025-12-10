@@ -31,7 +31,7 @@
 <td width="33%" align="center">
 <img src="https://img.icons8.com/fluency/96/000000/speed.png" width="64"/>
 <h3>سرعت فوق‌العاده</h3>
-<p>بهینه‌سازی خودکار میرور ها و DNS برای حداکثر سرعت</p>
+<p>بهینه‌سازی خودکار میرور ها و DNS</p>
 </td>
 <td width="33%" align="center">
 <img src="https://img.icons8.com/fluency/96/000000/easy.png" width="64"/>
