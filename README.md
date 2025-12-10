@@ -130,20 +130,6 @@ sudo ./toolbox.sh
 
 ---
 
-## 📸 نمایش تصویری
-
-<div align="center">
-
-### منوی اصلی
-![Main Menu](https://via.placeholder.com/700x400/2d3436/00b894?text=Main+Menu)
-
-### بهینه‌سازی APT Mirror
-![APT Optimization](https://via.placeholder.com/700x400/2d3436/00b894?text=APT+Mirror+Optimization)
-
-### تنظیمات DNS
-![DNS Setup](https://via.placeholder.com/700x400/2d3436/00b894?text=DNS+Configuration)
-
-</div>
 
 ---
 
