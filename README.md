@@ -36,7 +36,7 @@
 <td width="33%" align="center">
 <img src="https://img.icons8.com/fluency/96/000000/easy.png" width="64"/>
 <h3>استفاده آسان</h3>
-<p>رابط کاربری ساده و بدون نیاز به دانش </p>
+<p>رابط کاربری ساده </p>
 </td>
 <td width="33%" align="center">
 <img src="https://img.icons8.com/fluency/96/000000/checked.png" width="64"/>
