@@ -2,20 +2,19 @@
 
 # 🚀 DigitalVps ToolBox
 
-### ابزار هوشمند بهینه‌سازی و مدیریت سرور
+
+###ابزار هوشمند بهینه‌سازی و مدیریت سرور
 
 [![GitHub release](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/digitalvps-toolbox)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Linux-orange.svg)](https://www.linux.org/)
 [![Made with Love](https://img.shields.io/badge/Made%20with-❤️-red.svg)](https://digitalvps.ir)
 
-**بهینه‌سازی هوشمند • نصب آسان • رایگان و متن‌باز**
+**• بهینه‌سازی هوشمند • نصب آسان • رایگان و متن‌ باز**
 
-[🎯 شروع سریع](#-نصب-و-راه-اندازی) • [📚 مستندات](#-قابلیت-های-کلیدی) • [💬 پشتیبانی](https://t.me/digitalvps_group) • [🌐 وب‌سایت](https://digitalvps.ir)
+[🎯 شروع سریع](#-نصب-و-راه-اندازی) • [💬 پشتیبانی](https://t.me/digitalvps_group) • [🌐 وب‌سایت](https://digitalvps.ir)
 
 ---
-
-![DigitalVps ToolBox Demo](https://via.placeholder.com/800x400/1a1a2e/16c79a?text=DigitalVps+ToolBox+Demo)
 
 </div>
 
@@ -23,26 +22,26 @@
 
 ## 📖 معرفی
 
-**DigitalVps ToolBox** یک ابزار قدرتمند و کاملاً رایگان برای مدیریت و بهینه‌سازی سرورهای لینوکسی است که توسط تیم حرفه‌ای **[DigitalVps.ir](https://digitalvps.ir)** توسعه یافته است.
+**تولباکس** یک ابزار قدرتمند و کاملاً رایگان برای مدیریت و بهینه‌سازی سرورهای لینوکسی است که توسط تیم حرفه‌ای **[DigitalVps.ir](https://digitalvps.ir)** توسعه یافته است
 
-### 🎯 چرا DigitalVps ToolBox؟
+### 🎯 چرا دیجیتال وی پی اس ToolBox ؟
 
 <table>
 <tr>
 <td width="33%" align="center">
 <img src="https://img.icons8.com/fluency/96/000000/speed.png" width="64"/>
-<h3>⚡ سرعت فوق‌العاده</h3>
-<p>بهینه‌سازی خودکار میرورها و DNS برای حداکثر سرعت</p>
+<h3>سرعت فوق‌العاده</h3>
+<p> بهینه سازی Mirror و Dns </p>
 </td>
 <td width="33%" align="center">
 <img src="https://img.icons8.com/fluency/96/000000/easy.png" width="64"/>
-<h3>🎨 استفاده آسان</h3>
-<p>رابط کاربری ساده و بدون نیاز به دانش فنی پیشرفته</p>
+<h3>استفاده آسان</h3>
+<p> رابط کاربری ساده </p>
 </td>
 <td width="33%" align="center">
 <img src="https://img.icons8.com/fluency/96/000000/checked.png" width="64"/>
-<h3>✅ قابل اعتماد</h3>
-<p>تست شده روی هزاران سرور و VPS</p>
+<h3>قابل اعتماد</h3>
+<p> تست شده روی صد ها سرور </p>
 </td>
 </tr>
 </table>
@@ -95,13 +94,13 @@
 
 ## 🚀 نصب و راه اندازی
 
-### پیش‌نیازها
+### پیش‌ نیاز ها
 
-- سیستم عامل: Ubuntu 18.04+ یا Debian 9+
+- سیستم عامل : Ubuntu 18.04 + یا Debian 9 +
 - دسترسی Root یا Sudo
 - اتصال به اینترنت
 
-### نصب با یک دستور (توصیه شده)
+### نصب با یک دستور ( توصیه شده )
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yourusername/digitalvps-toolbox/main/install.sh | sudo bash
@@ -131,20 +130,6 @@ sudo ./toolbox.sh
 
 ---
 
-## 📸 نمایش تصویری
-
-<div align="center">
-
-### منوی اصلی
-![Main Menu](https://via.placeholder.com/700x400/2d3436/00b894?text=Main+Menu)
-
-### بهینه‌سازی APT Mirror
-![APT Optimization](https://via.placeholder.com/700x400/2d3436/00b894?text=APT+Mirror+Optimization)
-
-### تنظیمات DNS
-![DNS Setup](https://via.placeholder.com/700x400/2d3436/00b894?text=DNS+Configuration)
-
-</div>
 
 ---
 
