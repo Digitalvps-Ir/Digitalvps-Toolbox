@@ -4,12 +4,12 @@ GREEN='\e[32m'
 CYAN='\e[36m'
 WHITE='\e[97m'
 YELLOW='\e[93m'
-if [[ "$(tput colors)" -ge 256 ]]; then
+if [[ "$(tput colors 2>/dev/null)" -ge 256 ]]; then
   RED='\e[38;5;196m'      # Vivid red
   ORANGE='\e[38;5;202m'   # Warm orange
   PINK='\e[38;5;205m'     # Hot pink
   RESET='\e[0m'
-elif [[ "$(tput colors)" -ge 8 ]]; then
+elif [[ "$(tput colors 2>/dev/null)" -ge 8 ]]; then
   RED='\e[1;31m'          # Bold red
   ORANGE='\e[1;33m'       # Fallback yellow-orange
   PINK='\e[95m'           # Light magenta
@@ -37,29 +37,20 @@ echo "░░░╚═╝░░░░╚════╝░░╚════╝�
 echo -e "${RESET}"
 
 echo -e "${WHITE}       DigitalVPS.ir VPS ToolBox${RESET}"
-echo -e "${WHITE}         ${CYAN}https://github.com/Digitalvps-Ir${RESET}"
+echo -e "${WHITE}         https://github.com/Digitalvps-Ir${RESET}"
 echo -e "${WHITE}     Developed by: ${CYAN}https://github.com/ParsaKSH${RESET}"
 
 echo -e "${GREEN}======================================================${RESET}"
-is_iran_server() {
-    country=$(curl -s https://ipinfo.io/country 2>/dev/null)
 
-    country=$(echo "$country" | tr '[:lower:]' '[:upper:]')
-
-    if [ "$country" = "IR" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
 draw_menu() {
   local title="$1"
   shift
   local options=("$@")
 
-  local width=48
+  local width=60
   local inner_width=$((width - 2))
-  local line=$(printf "%${inner_width}s" "" | sed "s/ /═/g")
+  local line
+  line=$(printf "%${inner_width}s" "" | sed "s/ /═/g")
 
   local border_top="╔"
   local border_mid="╠"
@@ -72,7 +63,8 @@ draw_menu() {
   local title_length=${#title}
   local padding_left=$(( (inner_width - title_length) / 2 ))
   local padding_right=$(( inner_width - title_length - padding_left ))
-  local title_line="$(printf "%${padding_left}s" "")${title}$(printf "%${padding_right}s" "")"
+  local title_line
+  title_line="$(printf "%${padding_left}s" "")${title}$(printf "%${padding_right}s" "")"
 
   echo -e "${GREEN}${border_top}${line}${border_right}${RESET}"
   echo -e "${GREEN}${border_side}${WHITE}${title_line}${GREEN}${border_side}${RESET}"
@@ -88,12 +80,130 @@ draw_menu() {
   echo -ne "${WHITE}> ${RESET}"
 }
 
+run_speedtest_custom() {
+  echo -e "${CYAN}🌍 Select country for custom Speedtest server:${RESET}"
+  echo -e "${WHITE}1) Iran${RESET}"
+  echo -e "${WHITE}2) Germany${RESET}"
+  echo -e "${WHITE}3) Turkey${RESET}"
+  echo -e "${WHITE}4) USA${RESET}"
+  echo -e "${WHITE}5) Italy${RESET}"
+  echo -e "${WHITE}6) Russia${RESET}"
+  echo -e "${WHITE}7) China${RESET}"
+  echo -ne "${YELLOW}Choose a country [1-7]: ${RESET}"
+  read -r country_choice
+
+  local sid=""
+  case "$country_choice" in
+    1)
+      echo -e "${CYAN}🇮🇷 Iran - select operator:${RESET}"
+      echo -e "${WHITE}1) Hiweb (ID 6794)${RESET}"
+      echo -e "${WHITE}2) Asiatech (ID 61326)${RESET}"
+      echo -e "${WHITE}3) Irancell - Isfahan (ID 9795)${RESET}"
+      echo -e "${WHITE}4) MCI - Karaj (ID 71431)${RESET}"
+      echo -e "${WHITE}5) MCI - Tabriz (ID 22243)${RESET}"
+      echo -e "${WHITE}6) MCI - Shiraz (ID 22297)${RESET}"
+      echo -ne "${YELLOW}Choose [1-6]: ${RESET}"
+      read -r op
+      case "$op" in
+        1) sid=6794 ;;
+        2) sid=61326 ;;
+        3) sid=9795 ;;
+        4) sid=71431 ;;
+        5) sid=22243 ;;
+        6) sid=22297 ;;
+        *) echo -e "${RED}❌ Invalid selection.${RESET}"; return 1 ;;
+      esac
+      ;;
+    2)
+      echo -e "${CYAN}🇩🇪 Germany - select operator:${RESET}"
+      echo -e "${WHITE}1) RETN - Frankfurt (ID 31120)${RESET}"
+      echo -e "${WHITE}2) Jonasdevries - Falkenstein (ID 57989)${RESET}"
+      echo -e "${WHITE}3) KKO - Berlin (ID 23712)${RESET}"
+      echo -ne "${YELLOW}Choose [1-3]: ${RESET}"
+      read -r op
+      case "$op" in
+        1) sid=31120 ;;
+        2) sid=57989 ;;
+        3) sid=23712 ;;
+        *) echo -e "${RED}❌ Invalid selection.${RESET}"; return 1 ;;
+      esac
+      ;;
+    3)
+      echo -e "${CYAN}🇹🇷 Turkey - select operator:${RESET}"
+      echo -e "${WHITE}1) Turktelecom - Istanbul (ID 4667)${RESET}"
+      echo -e "${WHITE}2) Guzel.net - Istanbul (ID 64320)${RESET}"
+      echo -ne "${YELLOW}Choose [1-2]: ${RESET}"
+      read -r op
+      case "$op" in
+        1) sid=4667 ;;
+        2) sid=64320 ;;
+        *) echo -e "${RED}❌ Invalid selection.${RESET}"; return 1 ;;
+      esac
+      ;;
+    4)
+      echo -e "${CYAN}🇺🇸 USA - select operator:${RESET}"
+      echo -e "${WHITE}1) Surfshark - New York (ID 36817)${RESET}"
+      echo -e "${WHITE}2) Mycci - Portland (ID 65113)${RESET}"
+      echo -ne "${YELLOW}Choose [1-2]: ${RESET}"
+      read -r op
+      case "$op" in
+        1) sid=36817 ;;
+        2) sid=65113 ;;
+        *) echo -e "${RED}❌ Invalid selection.${RESET}"; return 1 ;;
+      esac
+      ;;
+    5)
+      echo -e "${CYAN}🇮🇹 Italy - select operator:${RESET}"
+      echo -e "${WHITE}1) Unidata - Rome (ID 395)${RESET}"
+      echo -e "${WHITE}2) Wicity - Lecce (ID 100709)${RESET}"
+      echo -ne "${YELLOW}Choose [1-2]: ${RESET}"
+      read -r op
+      case "$op" in
+        1) sid=395 ;;
+        2) sid=100709 ;;
+        *) echo -e "${RED}❌ Invalid selection.${RESET}"; return 1 ;;
+      esac
+      ;;
+    6)
+      echo -e "${CYAN}🇷🇺 Russia - select operator:${RESET}"
+      echo -e "${WHITE}1) Misaka - Moscow (ID 44806)${RESET}"
+      echo -e "${WHITE}2) TTK - Yakutsk (ID 15716)${RESET}"
+      echo -ne "${YELLOW}Choose [1-2]: ${RESET}"
+      read -r op
+      case "$op" in
+        1) sid=44806 ;;
+        2) sid=15716 ;;
+        *) echo -e "${RED}❌ Invalid selection.${RESET}"; return 1 ;;
+      esac
+      ;;
+    7)
+      echo -e "${CYAN}🇨🇳 China - select operator:${RESET}"
+      echo -e "${WHITE}1) Jsinfo - Zhenjiang (ID 36663)${RESET}"
+      echo -e "${WHITE}2) Nearoute - Hong Kong (ID 69574)${RESET}"
+      echo -ne "${YELLOW}Choose [1-2]: ${RESET}"
+      read -r op
+      case "$op" in
+        1) sid=36663 ;;
+        2) sid=69574 ;;
+        *) echo -e "${RED}❌ Invalid selection.${RESET}"; return 1 ;;
+      esac
+      ;;
+    *)
+      echo -e "${RED}❌ Invalid country selection.${RESET}"
+      return 1
+      ;;
+  esac
+
+  echo -e "${CYAN}🚀 Running speedtest with server ID ${WHITE}${sid}${CYAN}...${RESET}"
+  speedtest -s "$sid"
+}
+
 if [ "$(id -u)" -ne 0 ]; then
   echo -e "${RED}❌ Please run this script as root.${RESET}"
   exit 1
 fi
 
-main_iface=$(ip route | grep default | awk '{print $5}')
+main_iface=$(ip route | grep default | awk '{print $5}' | head -n1)
 if [ -z "$main_iface" ]; then
   echo -e "${RED}❌ Could not detect the main network interface.${RESET}"
   exit 1
@@ -104,79 +214,93 @@ draw_menu "ToolBox Menu" \
   "2) Enter MTU manually" \
   "3) Auto-Detect best APT Mirror" \
   "4) DNS" \
-  "5) Exit"
-
+  "5) Check licenses of this server" \
+  "6) Benchmark this server" \
+  "7) Speedtest (by Ookla)" \
+  "8) Exit"
 
 read choice
 
-if [ "$choice" = "5" ]; then
+if [ "$choice" = "8" ]; then
   echo -e "${YELLOW}👋 Exiting. Goodbye.${RESET}"
   exit 0
 
 elif [ "$choice" = "1" ]; then
- echo -e "${ORANGE}🔍 Detecting best MTU using ping...${RESET}"
-host="8.8.8.8"
-lower=1000
-upper=1500
+  echo -e "${ORANGE}🔍 Detecting best MTU using ping...${RESET}"
+  host="8.8.8.8"
+  lower=1000
+  upper=1500
 
-ip link set dev "$main_iface" mtu 1500 > /dev/null 2>&1
+  ip link set dev "$main_iface" mtu 1500 > /dev/null 2>&1
 
-while [ "$lower" -lt "$upper" ]; do
-  mid=$(((lower + upper + 1) / 2))
+  while [ "$lower" -lt "$upper" ]; do
+    mid=$(((lower + upper + 1) / 2))
+    if ping -M do -s $((mid - 28)) -c 1 "$host" > /dev/null 2>&1; then
+      lower=$mid
+    else
+      upper=$((mid - 1))
+    fi
+  done
 
-  if ping -M do -s $((mid - 28)) -c 1 "$host" > /dev/null 2>&1; then
+  mtu_value=$lower
+  echo -e "${PINK}✅ Best MTU detected: ${WHITE}$mtu_value${RESET}"
 
-    lower=$mid
-  else
-    upper=$((mid - 1))
+  read -p "$(echo -e "${ORANGE}❓ Do you want to apply this MTU? [y/N]: ${RESET}")" confirm
+  if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+    echo -e "${YELLOW}⚠️ Operation cancelled by user.${RESET}"
+    exit 0
   fi
-done
 
-mtu_value=$lower
-echo -e "${PINK}✅ Best MTU detected: ${WHITE}$mtu_value${RESET}"
-
-read -p "$(echo -e "${ORANGE}❓ Do you want to apply this MTU? [y/N]: ${RESET}")" confirm
-if [[ "$confirm" =~ ^[Yy]$ ]]; then
-  echo -e "${ORANGE}🔧 Applying MTU ${WHITE}$mtu_value${RESET} to interface ${WHITE}$main_iface${RESET}..."
-else
-  echo -e "${YELLOW}⚠️ Operation cancelled by user.${RESET}"
-  exit 0
-fi
-
+elif [ "$choice" = "2" ]; then
+  echo -ne "${WHITE}Enter MTU value (e.g. 1400): ${RESET}"
+  read -r mtu_value
+  if ! [[ "$mtu_value" =~ ^[0-9]+$ ]]; then
+    echo -e "${RED}❌ Invalid MTU value.${RESET}"
+    exit 1
+  fi
+  if [ "$mtu_value" -lt 576 ] || [ "$mtu_value" -gt 9000 ]; then
+    echo -e "${YELLOW}⚠️ MTU value ${WHITE}$mtu_value${YELLOW} is unusual. Proceeding anyway.${RESET}"
+  fi
+  echo -e "${ORANGE}🔧 MTU value set to ${WHITE}$mtu_value${ORANGE} for interface ${WHITE}$main_iface${RESET}"
 
 elif [ "$choice" = "3" ]; then
+  echo -e "${CYAN}🌍 APT Mirror Region Selection${RESET}"
+  echo -e "${WHITE}1) Use IRAN mirrors${RESET}"
+  echo -e "${WHITE}2) Use INTERNATIONAL mirrors${RESET}"
+  echo -ne "${YELLOW}Choose an option [1/2]: ${RESET}"
+  read -r mirror_region
 
-  echo -e "${CYAN}🌍 Checking server location...${RESET}"
-
-  is_iran_server
-  if [ $? -eq 0 ]; then
-      echo -e "${GREEN}✔ Server is located in IRAN. Using Iranian mirrors only.${RESET}"
-      mirrors=(
-        "https://mirror.digitalvps.ir/ubuntu"
-        "https://ubuntu.pishgaman.net/ubuntu"
-        "http://mirror.aminidc.com/ubuntu"
-        "https://ubuntu.pars.host"
-        "https://ir.ubuntu.sindad.cloud/ubuntu"
-        "https://ubuntu.shatel.ir"
-        "https://ubuntu.mobinhost.com/ubuntu"
-        "https://mirror.iranserver.com/ubuntu"
-        "https://mirror.arvancloud.ir/ubuntu"
-        "http://ir.archive.ubuntu.com/ubuntu"
-        "https://ubuntu.parsvds.com/ubuntu/"
-        "https://repo.linuxmirrors.ir/ubuntu/"
-        "https://iranrepo.ir/ubuntu"
-        "https://repo.iut.ac.ir/ubuntu/"
-        "https://ubuntu-mirror.kimiahost.com"
-      )
+  if [ "$mirror_region" = "1" ]; then
+    echo -e "${GREEN}✔ Using Iranian APT mirrors.${RESET}"
+    mirrors=(
+      "https://mirror.digitalvps.ir/ubuntu"
+      "https://ubuntu.pishgaman.net/ubuntu"
+      "http://mirror.aminidc.com/ubuntu"
+      "https://ubuntu.pars.host"
+      "https://ir.ubuntu.sindad.cloud/ubuntu"
+      "https://ubuntu.shatel.ir"
+      "https://ubuntu.mobinhost.com/ubuntu"
+      "https://mirror.iranserver.com/ubuntu"
+      "https://mirror.arvancloud.ir/ubuntu"
+      "http://ir.archive.ubuntu.com/ubuntu"
+      "https://ubuntu.parsvds.com/ubuntu/"
+      "https://repo.linuxmirrors.ir/ubuntu/"
+      "https://iranrepo.ir/ubuntu"
+      "https://repo.iut.ac.ir/ubuntu/"
+      "https://ubuntu-mirror.kimiahost.com"
+    )
+  elif [ "$mirror_region" = "2" ]; then
+    echo -e "${GREEN}✔ Using INTERNATIONAL APT mirrors.${RESET}"
+    mirrors=(
+      "http://mirrors.asnet.am/ubuntu/"
+      "http://mirror.datacenter.az/ubuntu/"
+      "http://mirrors.tuna.tsinghua.edu.cn/ubuntu/"
+      "http://ubuntu.mirrors.ovh.net/ubuntu/"
+      "http://de.archive.ubuntu.com"
+    )
   else
-      echo -e "${YELLOW}⚠ Server is NOT in Iran. Using NON-Iranian mirrors only.${RESET}"
-      mirrors=(
-        "http://mirrors.asnet.am/ubuntu/"
-        "http://mirror.datacenter.az/ubuntu/"
-        "http://mirrors.tuna.tsinghua.edu.cn/ubuntu/"
-        "http://ubuntu.mirrors.ovh.net/ubuntu/"
-        "http://de.archive.ubuntu.com"
-      )
+    echo -e "${RED}❌ Invalid selection.${RESET}"
+    exit 1
   fi
 
   declare -a mirror_results=()
@@ -207,8 +331,8 @@ elif [ "$choice" = "3" ]; then
   done
 
   echo -e "\n${CYAN}📊 Mirror Speed Results:${RESET}"
-  printf "${GREEN}%-4s %-45s %-10s${RESET}\n" "No." "Mirror" "Speed"
-  echo -e "${WHITE}---------------------------------------------------------------${RESET}"
+  printf "${GREEN}%-4s %-50s %-10s${RESET}\n" "No." "Mirror" "Speed"
+  echo -e "${WHITE}--------------------------------------------------------------------------${RESET}"
 
   for result in "${mirror_results[@]}"; do
     IFS='|' read -r idx mirror kb speed <<< "$result"
@@ -218,7 +342,7 @@ elif [ "$choice" = "3" ]; then
 
     if [[ "$mirror_display" == "mirror.digitalvps.ir/ubuntu" ]]; then
       mirror_display="${mirror_display} (our mirror)"
-      row_color="${YELLOW}${BOLD}"
+      row_color="${YELLOW}"
     fi
 
     if [[ "$speed" == "Failed" ]]; then
@@ -226,11 +350,11 @@ elif [ "$choice" = "3" ]; then
     fi
 
     if [[ "$idx" -eq "$best_index" ]]; then
-      row_color="${CYAN}${BOLD}"
+      row_color="${CYAN}"
     fi
 
     printf "%b%-4s%b " "$row_color" "$((idx + 1))" "$RESET"
-    printf "%b%-45s%b " "$row_color" "$mirror_display" "$RESET"
+    printf "%b%-50s%b " "$row_color" "$mirror_display" "$RESET"
     printf "%b%-10s%b\n" "$row_color" "$speed" "$RESET"
   done
 
@@ -251,25 +375,27 @@ elif [ "$choice" = "3" ]; then
   ubuntu_ver=$(lsb_release -sr | cut -d'.' -f1)
   if [[ "$ubuntu_ver" -ge 24 ]]; then
     if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
-      sudo sed -i "s|URIs: https\?://[^ ]*|URIs: $selected_mirror|g" /etc/apt/sources.list.d/ubuntu.sources
+      sed -i "s|URIs: https\?://[^ ]*|URIs: $selected_mirror|g" /etc/apt/sources.list.d/ubuntu.sources
     fi
   else
     if [ -f /etc/apt/sources.list ]; then
-      sudo sed -i "s|https\?://[^ ]*|$selected_mirror|g" /etc/apt/sources.list
+      sed -i "s|https\?://[^ ]*|$selected_mirror|g" /etc/apt/sources.list
     fi
   fi
 
   echo -e "${ORANGE}🔄 Updating APT package list...${RESET}"
-  sudo apt-get update >/dev/null 2>&1 && \
-  echo -e "${GREEN}✅ Mirror updated and package index refreshed.${RESET}" || \
-  echo -e "${RED}❌ Failed to update package index.${RESET}"
-
-  exit 1
+  if apt-get update >/dev/null 2>&1; then
+    echo -e "${GREEN}✅ Mirror updated and package index refreshed.${RESET}"
+    exit 0
+  else
+    echo -e "${RED}❌ Failed to update package index.${RESET}"
+    exit 1
+  fi
 
 elif [ "$choice" = "4" ]; then
   echo -e "${CYAN}🛠 DNS Configuration Menu${RESET}"
-  echo -e "${WHITE}1) Normal DNS (Auto Detect)${RESET}"
-  echo -e "${WHITE}2) Anti-Tahrim DNS (Auto Detect)${RESET}"
+  echo -e "${WHITE}1) Use INTERNATIONAL DNS (Google / Cloudflare / Quad9)${RESET}"
+  echo -e "${WHITE}2) Use IRANIAN DNS (Anti-Tahrim)${RESET}"
   echo -e "${WHITE}3) Manual Entry${RESET}"
   echo -ne "${YELLOW}Choose an option [1/2/3]: ${RESET}"
   read -r dns_choice
@@ -281,11 +407,14 @@ elif [ "$choice" = "4" ]; then
       exit 1
     fi
 
-    if [ "$dns_choice" = "1" ]; then
-      profile="Normal"
-      echo -e "${CYAN}🔍 Testing Normal public DNS servers using dig...${RESET}"
+    declare -A dns_names
+    dns_sets=()
 
-      declare -A dns_names=(
+    if [ "$dns_choice" = "1" ]; then
+      profile="International"
+      echo -e "${CYAN}🔍 Testing INTERNATIONAL DNS servers using dig...${RESET}"
+
+      dns_names=(
         [0]="Google"
         [1]="Cloudflare"
         [2]="Quad9"
@@ -296,10 +425,10 @@ elif [ "$choice" = "4" ]; then
         "9.9.9.9 149.112.112.112"
       )
     else
-      profile="Anti-Tahrim"
-      echo -e "${CYAN}🔍 Testing Anti-Tahrim DNS servers using dig...${RESET}"
+      profile="Iranian (Anti-Tahrim)"
+      echo -e "${CYAN}🔍 Testing IRANIAN DNS servers using dig...${RESET}"
 
-      declare -A dns_names=(
+      dns_names=(
         [0]="Electro"
         [1]="Shekan"
         [2]="Dnspro"
@@ -363,16 +492,25 @@ elif [ "$choice" = "4" ]; then
     if systemctl is-active --quiet systemd-resolved; then
       iface=$(ip route | grep default | awk '{print $5}' | head -n1)
       echo -e "${CYAN}🔧 systemd-resolved is active. Applying DNS via resolvectl for interface: ${WHITE}$iface${RESET}"
-      resolvectl dns "$iface" "$dns1" "$dns2"
+      if [ -n "$dns2" ]; then
+        resolvectl dns "$iface" "$dns1" "$dns2"
+      else
+        resolvectl dns "$iface" "$dns1"
+      fi
       resolvectl domain "$iface" "~."
       echo -e "${GREEN}✅ DNS set using resolvectl.${RESET}"
     else
       echo -e "${YELLOW}⚠️ systemd-resolved is not active. Writing to /etc/resolv.conf directly.${RESET}"
       rm -f /etc/resolv.conf
-      echo -e "nameserver $dns1\nnameserver $dns2" > /etc/resolv.conf
+      {
+        echo "nameserver $dns1"
+        [ -n "$dns2" ] && echo "nameserver $dns2"
+      } > /etc/resolv.conf
       echo -e "${GREEN}✅ DNS written to /etc/resolv.conf.${RESET}"
       echo -e "${GREEN}✅ DNS updated (temporarily in /etc/resolv.conf).${RESET}"
     fi
+
+    exit 0
 
   elif [ "$dns_choice" = "3" ]; then
     echo -ne "${WHITE}Enter first DNS IP: ${RESET}"
@@ -409,20 +547,62 @@ elif [ "$choice" = "4" ]; then
     fi
 
     echo -e "${GREEN}✅ DNS updated with manual input.${RESET}"
+    exit 0
   else
     echo -e "${RED}❌ Invalid option.${RESET}"
     exit 1
   fi
 
+elif [ "$choice" = "5" ]; then
+  echo -e "${CYAN}🔍 Checking streaming / unlock licenses for this server...${RESET}"
+  bash <(curl -L -s check.unlock.media) -E en
   exit 0
+
+elif [ "$choice" = "6" ]; then
+  echo -e "${CYAN}📈 Running server benchmark (bench.sh)...${RESET}"
+  curl -Lso- bench.sh | bash
+  exit 0
+
+elif [ "$choice" = "7" ]; then
+  if ! command -v speedtest >/dev/null 2>&1; then
+    echo -e "${YELLOW}⚠️ 'speedtest' command not found. Trying to install via snap...${RESET}"
+    if command -v snap >/dev/null 2>&1; then
+      snap install speedtest
+      if ! command -v speedtest >/dev/null 2>&1; then
+        echo -e "${RED}❌ Failed to install speedtest via snap.${RESET}"
+        exit 1
+      fi
+    else
+      echo -e "${RED}❌ 'snap' is not installed. Please install 'speedtest' manually.${RESET}"
+      exit 1
+    fi
+  fi
+
+  echo -e "${CYAN}🚀 Speedtest (by Ookla) Menu${RESET}"
+  echo -e "${WHITE}1) Auto find a server${RESET}"
+  echo -e "${WHITE}2) Choose custom server${RESET}"
+  echo -ne "${YELLOW}Choose an option [1/2]: ${RESET}"
+  read -r st_choice
+
+  if [ "$st_choice" = "1" ]; then
+    echo -e "${CYAN}🚀 Running automatic speedtest...${RESET}"
+    speedtest
+    exit 0
+  elif [ "$st_choice" = "2" ]; then
+    run_speedtest_custom
+    exit $?
+  else
+    echo -e "${RED}❌ Invalid option.${RESET}"
+    exit 1
+  fi
+
 else
   echo -e "${RED}❌ Invalid choice.${RESET}"
   exit 1
 fi
 
-echo -e "${CYAN}🔧 Setting MTU for ${main_iface} to ${mtu_value}...${RESET}"
-ip link set dev "$main_iface" mtu "$mtu_value"
-if [ $? -eq 0 ]; then
+echo -e "${CYAN}🔧 Setting MTU for ${WHITE}${main_iface}${CYAN} to ${WHITE}${mtu_value}${CYAN}...${RESET}"
+if ip link set dev "$main_iface" mtu "$mtu_value"; then
   echo -e "${GREEN}✅ MTU successfully set temporarily.${RESET}"
 else
   echo -e "${RED}❌ Failed to set MTU.${RESET}"
@@ -432,12 +612,11 @@ fi
 if [ -d /etc/netplan ]; then
   netplan_file=$(grep -rl "$main_iface" /etc/netplan)
   if [ -n "$netplan_file" ]; then
-    echo -e "${CYAN}🔁 Making MTU persistent in $netplan_file${RESET}"
+    echo -e "${CYAN}🔁 Making MTU persistent in ${WHITE}$netplan_file${RESET}"
     cp "$netplan_file" "${netplan_file}.bak"
     sed -i "/$main_iface:/,/^[^[:space:]]/s/mtu:.*//g" "$netplan_file"
     sed -i "/$main_iface:/a \ \ \ \ mtu: $mtu_value" "$netplan_file"
-    netplan apply
-    if [ $? -eq 0 ]; then
+    if netplan apply; then
       echo -e "${GREEN}✅ MTU change applied and made persistent via netplan.${RESET}"
       exit 0
     else
@@ -447,7 +626,7 @@ if [ -d /etc/netplan ]; then
 fi
 
 if [ -f /etc/network/interfaces ]; then
-  echo -e "${CYAN}🔁 Checking /etc/network/interfaces for $main_iface${RESET}"
+  echo -e "${CYAN}🔁 Checking /etc/network/interfaces for ${WHITE}$main_iface${RESET}"
   cp /etc/network/interfaces /etc/network/interfaces.bak
   if grep -q "iface $main_iface" /etc/network/interfaces; then
     sed -i "/iface $main_iface/s/ mtu [0-9]*//g" /etc/network/interfaces
@@ -457,5 +636,5 @@ if [ -f /etc/network/interfaces ]; then
     echo -e "${YELLOW}⚠️ Interface $main_iface not found in interfaces file. Please edit manually if needed.${RESET}"
   fi
 else
-  echo -e "${RED}❌ No supported network config found. Please configure MTU manually.${RESET}"
+  echo -e "${YELLOW}⚠️ No supported persistent network config found. MTU set only temporarily.${RESET}"
 fi
