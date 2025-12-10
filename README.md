@@ -2,7 +2,7 @@
 
 # 🚀 DigitalVps ToolBox
 
-### ابزار هوشمند بهینه‌سازی و مدیریت سرور
+## ابزار هوشمند بهینه‌سازی و مدیریت سرور
 [![GitHub release](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/digitalvps-toolbox)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Linux-orange.svg)](https://www.linux.org/)
