@@ -162,16 +162,7 @@ sudo ./toolbox.sh
 
 ### سناریو 1: بهبود سرعت به‌روزرسانی
 
-```bash
-# قبل از استفاده
-$ time sudo apt update
-real    0m45.234s
-
-# بعد از تنظیم میرور DigitalVPS
-$ time sudo apt update
-real    0m8.156s
-
-✅ بهبود 82% در سرعت!
+```
 ```
 
 ### سناریو 2: رفع مشکل دسترسی به Docker Hub
