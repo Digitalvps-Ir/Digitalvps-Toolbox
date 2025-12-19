@@ -2,7 +2,7 @@
 
 > ابزار جامع بهینه‌سازی و مدیریت سرورهای Ubuntu/Debian
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Platform](https://img.shields.io/badge/platform-Ubuntu%20%7C%20Debian-orange.svg)
 
