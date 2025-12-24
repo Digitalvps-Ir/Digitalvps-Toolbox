@@ -1,6 +1,6 @@
 # 🛠️ DigitalVPS ToolBox
 
-> ابزار جامع بهینه‌سازی و مدیریت سرورهای Ubuntu/Debian
+> ابزار جامع بهینه‌سازی و مدیریت سرورهای Ubuntu / Debian
 
 ![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
