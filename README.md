@@ -75,7 +75,7 @@
 ✓ Debian Security Repository
 ```
 
-#### 🇮🇷 میرور های سریع داخلی ایران
+#### 🌍 میرور های سریع داخلی ایران
 
 ```
 ✓ Ubuntu Digitalvps.ir Vip Mirror
