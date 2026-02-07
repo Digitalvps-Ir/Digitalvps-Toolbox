@@ -82,39 +82,55 @@ draw_menu() {
 
 apply_mtu() {
   local mtu_value="$1"
+  
   echo -e "${CYAN}🔧 Setting MTU for ${WHITE}${main_iface}${CYAN} to ${WHITE}${mtu_value}${CYAN}...${RESET}"
   if ip link set dev "$main_iface" mtu "$mtu_value"; then
     echo -e "${GREEN}✅ MTU successfully set temporarily.${RESET}"
   else
-    echo -e "${RED}❌ Failed to set MTU.${RESET}"
+    echo -e "${RED}❌ Failed to set MTU temporarily. Aborting.${RESET}"
     read -p "$(echo -e "${YELLOW}Press Enter to go back...${RESET}")" _
     return
   fi
 
   if [ -d /etc/netplan ]; then
-    netplan_file=$(grep -rl "$main_iface" /etc/netplan)
-    if [ -n "$netplan_file" ]; then
-      echo -e "${CYAN}🔁 Making MTU persistent in ${WHITE}$netplan_file${RESET}"
-      cp "$netplan_file" "${netplan_file}.bak"
-      sed -i "/$main_iface:/,/^[^[:space:]]/s/mtu:.*//g" "$netplan_file"
-      sed -i "/$main_iface:/a \ \ \ \ mtu: $mtu_value" "$netplan_file"
-      if netplan apply; then
-        echo -e "${GREEN}✅ MTU change applied and made persistent via netplan.${RESET}"
-      else
-        echo -e "${RED}❌ Failed to apply netplan.${RESET}"
-      fi
+    echo -e "${CYAN}🔁 Making MTU persistent in Netplan...${RESET}"
+    
+    local netplan_mtu_file="/etc/netplan/99-custom-mtu-${main_iface}.yaml"
+    
+      cat <<EOF > "$netplan_mtu_file"
+  network:
+    version: 2
+    ethernets:
+      $main_iface:
+        mtu: $mtu_value
+EOF
+
+    echo -e "${CYAN}⚙️ Applying Netplan configuration...${RESET}"
+    if sudo netplan apply 2>/dev/null; then
+      echo -e "${GREEN}✅ MTU made persistent via Netplan ($netplan_mtu_file).${RESET}"
+    else
+      echo -e "${RED}❌ Failed to apply netplan! Reverting changes...${RESET}"
+      rm "$netplan_mtu_file"
+      sudo netplan apply 2>/dev/null
+      echo -e "${YELLOW}⚠️ Reverted changes. Check your Netplan config manually.${RESET}"
     fi
   fi
 
   if [ -f /etc/network/interfaces ]; then
     echo -e "${CYAN}🔁 Checking /etc/network/interfaces for ${WHITE}$main_iface${RESET}"
+    
     cp /etc/network/interfaces /etc/network/interfaces.bak
+    
     if grep -q "iface $main_iface" /etc/network/interfaces; then
+
       sed -i "/iface $main_iface/s/ mtu [0-9]*//g" /etc/network/interfaces
-      sed -i "/iface $main_iface/s/$/ mtu $mtu_value/" /etc/network/interfaces
-      echo -e "${GREEN}✅ Clean MTU value set in /etc/network/interfaces${RESET}"
+      
+
+      sed -i "/iface $main_iface/a \\    mtu $mtu_value" /etc/network/interfaces
+      
+      echo -e "${GREEN}✅ MTU value set in /etc/network/interfaces${RESET}"
     else
-      echo -e "${YELLOW}⚠️ Interface $main_iface not found in interfaces file. Please edit manually if needed.${RESET}"
+      echo -e "${YELLOW}⚠️ Interface $main_iface not found in interfaces file. Please edit manually.${RESET}"
     fi
   fi
 
